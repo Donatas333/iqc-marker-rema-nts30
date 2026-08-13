@@ -300,7 +300,7 @@ function repairMojibake(text) {
     "â€™": 0x92, "â€œ": 0x93, "â€": 0x94, "â€¢": 0x95, "â€“": 0x96, "â€”": 0x97, "Ëœ": 0x98,
     "â„¢": 0x99, "Å¡": 0x9a, "â€º": 0x9b, "Å“": 0x9c, "Å¾": 0x9e, "Å¸": 0x9f,
   };
-  for (let pass = 0; pass < 2 && /[ÃƒÃ‚Ã¢]/.test(fixed); pass += 1) {
+  for (let pass = 0; pass < 4 && /[ÃƒÃ‚Ã¢]/.test(fixed); pass += 1) {
     try {
       const bytes = Uint8Array.from([...fixed].map((character) => {
         const code = character.charCodeAt(0);
@@ -596,6 +596,7 @@ function App() {
 
   useEffect(() => {
     repairVisibleText(document.body);
+    const repairTimer = window.setInterval(() => repairVisibleText(document.body), 250);
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === "characterData") {
@@ -614,7 +615,10 @@ function App() {
       });
     });
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.clearInterval(repairTimer);
+    };
   }, []);
 
   useEffect(() => {
