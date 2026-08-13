@@ -272,6 +272,244 @@ const SPARE_PARTS = [
     "description": "REMA BLADE CVR PARK POS. BTM",
     "quantity": "2",
     "isah": "104003749"
+  },
+  {
+    "item": "25",
+    "code": "4022.689.87591",
+    "description": "REMA BLADE CVR PARK POS. BM R",
+    "quantity": "1",
+    "isah": "104003748"
+  },
+  {
+    "item": "26",
+    "code": "4022.689.87581",
+    "description": "REMA BLADE CVR PARK POS. BM L",
+    "quantity": "1",
+    "isah": "104003747"
+  },
+  {
+    "item": "27",
+    "code": "4022.629.00883",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X25",
+    "quantity": "4",
+    "isah": "104003745"
+  },
+  {
+    "item": "28",
+    "code": "4022.689.10522",
+    "description": "REMA BLADE COVER PARK BL H",
+    "quantity": "1",
+    "isah": "104003722"
+  },
+  {
+    "item": "29",
+    "code": "4022.689.10512",
+    "description": "REMA BLADE COVER PARK BL R",
+    "quantity": "1",
+    "isah": "104003721"
+  },
+  {
+    "item": "30",
+    "code": "4022.629.00168",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X30",
+    "quantity": "4",
+    "isah": "101515741"
+  },
+  {
+    "item": "31",
+    "code": "4022.681.10251",
+    "description": "REMA BLADE COVER CLAMP",
+    "quantity": "2",
+    "isah": "104002697"
+  },
+  {
+    "item": "32.1",
+    "code": "4022.629.00171",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X45",
+    "quantity": "2",
+    "isah": "104002778"
+  },
+  {
+    "item": "32.2",
+    "code": "4022.489.89705",
+    "description": "KNOB M BLK ZS WASHER",
+    "quantity": "2",
+    "isah": "101218551"
+  },
+  {
+    "item": "33",
+    "code": "4022.689.10543",
+    "description": "REMA BLADE COVER TOP W.A.",
+    "quantity": "1",
+    "isah": "104004966"
+  },
+  {
+    "item": "34.1",
+    "code": "4022.689.11291",
+    "description": "REMA BLADE COVER SCREW M6X35",
+    "quantity": "2",
+    "isah": "104004947"
+  },
+  {
+    "item": "34.2",
+    "code": "4022.699.11991",
+    "description": "REMA BLADE COVER BTM BUSH",
+    "quantity": "2",
+    "isah": "104004968"
+  },
+  {
+    "item": "34.3",
+    "code": "4022.489.90110",
+    "description": "SPRING CPRSN SST 0.8X8X32",
+    "quantity": "2",
+    "isah": "104004969"
+  },
+  {
+    "item": "35",
+    "code": "4022.689.10313",
+    "description": "REMA BLADE COVER BTM PART",
+    "quantity": "1",
+    "isah": "104004961"
+  },
+  {
+    "item": "36.1",
+    "code": "4022.689.10363",
+    "description": "REMA BLADE COVER BEAM W.A.",
+    "quantity": "1",
+    "isah": "104004956"
+  },
+  {
+    "item": "36.2",
+    "code": "4022.689.10373",
+    "description": "REMA BLADE COVER BEAM RAIL",
+    "quantity": "1",
+    "isah": "104004957"
+  },
+  {
+    "item": "36.3",
+    "code": "4022.689.10381",
+    "description": "REMA BLADE COVER BEAM CATCH R",
+    "quantity": "1",
+    "isah": "104003742"
+  },
+  {
+    "item": "36.4",
+    "code": "4022.689.10391",
+    "description": "REMA BLADE COVER BEAM CATCH L",
+    "quantity": "1",
+    "isah": "104003743"
+  },
+  {
+    "item": "37",
+    "code": "4022.489.88018",
+    "description": "PIN PAR REM 63T X11",
+    "quantity": "2",
+    "isah": "104002784"
+  },
+  {
+    "item": "38",
+    "code": "4022.689.10562",
+    "description": "REMA BLADE COVER SCREW T15",
+    "quantity": "2",
+    "isah": "104003728"
+  },
+  {
+    "item": "39.1",
+    "code": "4022.489.10403",
+    "description": "REMA BLADE COVER X LOCK ASSY",
+    "quantity": "2",
+    "isah": "104004958"
+  },
+  {
+    "item": "39.2",
+    "code": "4022.689.10412",
+    "description": "REMA BLADE COVER X LOCK PIN",
+    "quantity": "2",
+    "isah": "104005420"
+  },
+  {
+    "item": "39.3",
+    "code": "4022.689.10421",
+    "description": "REMA BLADE COVER X LOCK GRIP",
+    "quantity": "2",
+    "isah": "104002701"
+  },
+  {
+    "item": "39.4",
+    "code": "4022.689.10430",
+    "description": "REMA BLADE COVER X LOCK BUSH",
+    "quantity": "2",
+    "isah": "104004960"
+  },
+  {
+    "item": "39.5",
+    "code": "4022.689.10441",
+    "description": "REMA BLADE COVER X LOCK BUSH",
+    "quantity": "2",
+    "isah": "104002703"
+  },
+  {
+    "item": "39.6",
+    "code": "4022.489.01343",
+    "description": "SPRING CPRSN VAC 0.53X8X24.5",
+    "quantity": "2",
+    "isah": "104003744"
+  },
+  {
+    "item": "39.7",
+    "code": "4022.629.00156",
+    "description": "SCREW HXS CAP VAC SST EP-K M5X25",
+    "quantity": "2",
+    "isah": "101519351"
+  },
+  {
+    "item": "39.8",
+    "code": "4022.489.97646",
+    "description": "PIN PAR REM 63T X11",
+    "quantity": "2",
+    "isah": "104002782"
+  },
+  {
+    "item": "40",
+    "code": "4022.629.00148",
+    "description": "SCREW HXS CAP VAC SST EP-K M4X30",
+    "quantity": "8",
+    "isah": "101605111"
+  },
+  {
+    "item": "41.1",
+    "code": "4022.689.10451",
+    "description": "REMA BLADE COVER BEAM BUSH",
+    "quantity": "2",
+    "isah": "104002704"
+  },
+  {
+    "item": "41.2",
+    "code": "4022.402.00461",
+    "description": "REMA BLADE COVER BEAM RING",
+    "quantity": "2",
+    "isah": "104002705"
+  },
+  {
+    "item": "41.3",
+    "code": "4022.689.10481",
+    "description": "REMA BLADE COVER BEAM RING",
+    "quantity": "2",
+    "isah": "104002706"
+  },
+  {
+    "item": "41.4",
+    "code": "4022.402.00471",
+    "description": "REMA BLADE COVER BEAM RING",
+    "quantity": "2",
+    "isah": "104002707"
+  },
+  {
+    "item": "41.5",
+    "code": "4022.689.10571",
+    "description": "REMA BLADE COVER CVR BM SCR SST EP-K",
+    "quantity": "2",
+    "isah": "104003112"
   }
 ];
 
@@ -437,6 +675,10 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   table.spares th { background:#f5f5f4; font-weight:700; text-align:left; }
   table.spares th:nth-child(1) { width:6%; } table.spares th:nth-child(2) { width:14%; } table.spares th:nth-child(3) { width:31%; } table.spares th:nth-child(4) { width:7%; } table.spares th:nth-child(5) { width:11%; } table.spares th:nth-child(n+6) { width:10.3%; }
   table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }
+  .cover-block { border:1px solid #a8a29e; padding:10px 12px; margin:16px 0; font-size:10px; color:#1f2937; }
+  .cover-block ul { margin:7px 0 0 18px; padding:0; } .cover-block li { margin:4px 0; }
+  .cover-label { margin:0; font-weight:700; } .cover-name { margin:2px 0 0 18px; font-weight:600; }
+  .cover-overview { margin-top:22px; }
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:0; left:0; right:0; background:#fff; z-index:10; }
@@ -466,7 +708,30 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       <tr><td style="background:#fafaf9;font-weight:600;">N#</td><td colspan="3">${esc(unitInfo.n)}</td></tr>
     </table>
 
-    <h3>CHAPTER 1  -  GENERAL IMPRESSION</h3>
+    <div class="cover-block">
+      <p class="cover-label">Product scope</p>
+      <p class="cover-name">NTS30</p>
+      <ul>
+        <li>Create one document per H-code.</li>
+        <li>File template location: T:\Service Center\01. Operations\18. Checklist Executed\NTS\NTS30\Cleanroom - Incoming Quality Control\Template file\</li>
+        <li>Save completed files in T:\Service Center\01. Operations\18. Checklist Executed\NTS\NTS30\Cleanroom - Incoming Quality Control\</li>
+        <li>File name: [IQC] - [RTM name] - [H-code] - [date in format YYYYMMDD].docx</li>
+        <li>Also fill in the checklist. Both documents need to be completed.</li>
+      </ul>
+    </div>
+    <div class="cover-block cover-overview">
+      <p class="cover-label">Overview of tables to be completed:</p>
+      <ul>
+        <li>Chapter 1: General Impression / overview photos</li>
+        <li>Chapter 2: Quickscan</li>
+        <li>Chapter 3: Molecular contamination (stains)</li>
+        <li>Chapter 4: Damages (scratches, scuffs, pittings, rust, bent, tears)</li>
+        <li>Chapter 5: Other remarks &amp; observations</li>
+        <li>Chapter 6: Spare parts list</li>
+      </ul>
+    </div>
+
+    <h3 class="chapter-break">CHAPTER 1  -  GENERAL IMPRESSION</h3>
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 1: Overview photos</p>
     ${overviewHtml}
 
