@@ -740,8 +740,12 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     ${overviewHtml}
 
     <h3 class="chapter-break">CHAPTER 2  -  QUICKSCAN</h3>
-    <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 4px;">Table 2: Quickscan table</p>
-    <p style="font-size:11px;color:#94a3b8;margin:0 0 8px;">Circle outline = damage. Triangle outline = stain.</p>
+    <p style="font-size:12px;font-weight:600;margin:0 0 7px;">2. Quickscan</p>
+    <p style="font-size:11px;color:#475569;margin:0 0 9px;">Copy and drag the circle over damaged parts. Copy and drag the triangle over stained parts.</p>
+    <div style="display:flex;align-items:center;gap:38px;margin:0 0 12px;font-size:10px;font-weight:600;color:#334155;">
+      <span style="display:flex;align-items:center;gap:8px;">ITEMS WITH DAMAGE <i style="display:inline-block;width:24px;height:24px;border:3px solid #F1090A;border-radius:50%;box-sizing:border-box;"></i></span>
+      <span style="display:flex;align-items:center;gap:8px;">ITEMS WITH STAINS <i style="display:inline-block;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:27px solid #4470C0;position:relative;"></i></span>
+    </div>
     ${quickscanHtml}
 
     <section style="break-before:page;padding-top:68px;">
@@ -2214,8 +2218,12 @@ function App() {
               <h3 className="text-sm text-slate-900 mb-1 chapter-break" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600 }}>
                 CHAPTER 2  -  QUICKSCAN
               </h3>
-              <p className="text-[11px] text-slate-500 mb-1 italic">Table 2: Quickscan table</p>
-              <p className="text-[11px] text-slate-400 mb-2">Circle outline = damage. Triangle outline = stain.</p>
+              <p className="text-xs font-semibold text-slate-800 mb-1">2. Quickscan</p>
+              <p className="text-[11px] text-slate-600 mb-2">Copy and drag the circle over damaged parts. Copy and drag the triangle over stained parts.</p>
+              <div className="flex items-center gap-8 mb-3 text-[10px] font-semibold text-slate-700">
+                <span className="flex items-center gap-2">ITEMS WITH DAMAGE <Circle size={25} className="text-red-600" strokeWidth={3} /></span>
+                <span className="flex items-center gap-2">ITEMS WITH STAINS <Triangle size={29} className="text-blue-600" strokeWidth={3} /></span>
+              </div>
               {PARTS.reduce((pages, part, index) => {
                 if (index % 4 === 0) pages.push([]);
                 pages[pages.length - 1].push(part);
