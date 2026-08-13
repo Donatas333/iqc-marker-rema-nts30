@@ -679,7 +679,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   * { box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
-  .hdr { display:flex; justify-content:space-between; align-items:center; min-height:54px; padding:12px 24px; border-bottom:3px solid #0f172a; font-size:12px; }
+  .hdr { display:flex; justify-content:space-between; align-items:center; min-height:66px; padding:14px 28px; border-bottom:3px solid #0f172a; font-size:16px; }
   .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:82px; padding:6px 24px 3px; border-top:1px solid #cbd5e1; }
   .ftr img { height:58px !important; width:auto; max-width:64%; object-fit:contain; }
   .rbody { padding:78px 18px 92px; }
