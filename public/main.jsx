@@ -152,7 +152,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           .join("");
         const emptyNote = "";
         const breakStyle = idx === 0 ? "" : "break-before:page;";
-        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(100%,560px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(100%,660px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
@@ -198,18 +198,18 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:54px; padding:12px 24px; border-bottom:3px solid #0f172a; font-size:12px; }
-  .ftr { display:flex; justify-content:center; align-items:center; min-height:76px; padding:12px 24px; border-top:1px solid #cbd5e1; }
-  .ftr img { height:48px !important; width:auto; }
-  .rbody { padding:78px 24px 98px; }
+  .ftr { display:flex; justify-content:center; align-items:flex-end; height:42px; padding:3px 24px 2px; border-top:1px solid #cbd5e1; }
+  .ftr img { height:24px !important; width:auto; max-width:88%; object-fit:contain; }
+  .rbody { padding:78px 18px 52px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:0; left:0; right:0; background:#fff; z-index:10; }
     .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
-    .rbody { padding:78px 24px 98px; }
-    h3.chapter-break { break-before: page; padding-top:64px; margin-top:0; }
-    @page { size: A4; margin: 14mm 12mm 28mm 12mm; }
+    .rbody { padding:78px 18px 52px; }
+    h3.chapter-break { break-before: page; padding-top:58px; margin-top:0; }
+    @page { size: A4; margin: 10mm 10mm 12mm 10mm; }
   }
 </style>
 </head>
@@ -251,7 +251,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 3: Other remarks &amp; observations</p>
     ${remarksHtml}
   </div>
-  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:28px;max-width:88%;object-fit:contain;" /></div>
+  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:24px;max-width:88%;object-fit:contain;" /></div>
 </div>
 </body></html>`;
 }
