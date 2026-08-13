@@ -697,7 +697,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:-8mm; left:0; right:0; background:#fff; z-index:10; }
-    .ftr { position: fixed; bottom:-26mm; left:0; right:0; background:#fff; z-index:10; }
+    .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
     .rbody { padding:88px 18px 92px; }
     h3.chapter-break { break-before: page; padding-top:58px; margin-top:0; }
     @page { size: A4; margin: 10mm 10mm 32mm 10mm; }
