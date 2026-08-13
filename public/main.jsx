@@ -327,6 +327,18 @@ function repairVisibleText(root) {
   });
 }
 
+// Babel turns JSX text into React.createElement calls. Normalizing text at
+// that point is more reliable than trying to change nodes after React renders.
+const originalCreateElement = React.createElement;
+React.createElement = function createCleanElement(type, props, ...children) {
+  const cleanChild = (child) => {
+    if (typeof child === "string") return repairMojibake(child);
+    if (Array.isArray(child)) return child.map(cleanChild);
+    return child;
+  };
+  return originalCreateElement(type, props, ...children.map(cleanChild));
+};
+
 // Every uploaded photo goes through this editor. Keeping the crop operation in
 // the browser makes it fast, works offline, and means only the smaller square
 // image is saved with the inspection.
