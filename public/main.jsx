@@ -680,7 +680,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:68px; padding:12px 28px; border-bottom:3px solid #0f172a; font-size:16px; } .hdr > span:first-child { font-size:23px; line-height:1; }
-  .ftr { display:none; }
+  .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:36px; padding:3px 22px 1px; border-top:2px solid #0f172a; }\n  .ftr img { height:24px; width:auto; max-width:45%; object-fit:contain; }
     .rbody { padding:78px 18px 20px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
@@ -696,10 +696,10 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:-1mm; left:0; right:0; background:#fff; z-index:10; }
-    .ftr { display:none !important; }
+    .ftr { display:flex !important; position:fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
     .rbody { padding:96px 18px 20px; }
     h3.chapter-break { break-before: page; padding-top:0; margin-top:36px; }
-    @page { size: A4; margin: 10mm 10mm 10mm 10mm; }
+    @page { size: A4; margin: 10mm 10mm 18mm 10mm; }
   }
 </style>
 </head>
@@ -786,6 +786,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       ${sparePartsHtml}
     </section>
   </div>
+  <div class="ftr"><img src="${FOOTER_DATA_URL}" alt="HQ Group" /></div>
 </div>
 </body></html>`;
 }
