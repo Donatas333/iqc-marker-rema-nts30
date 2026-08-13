@@ -695,17 +695,21 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     unitInfo.hcode || "H-code  - "
   )}</span></div>
   <div class="rbody">
-    <table class="info" style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-      <tr><td style="background:#fafaf9;font-weight:600;width:140px;">Name operator</td><td>${esc(
-        unitInfo.operator
-      )}</td><td style="background:#fafaf9;font-weight:600;width:120px;">Signed by SL</td><td>${esc(unitInfo.signedBySL)}</td></tr>
-      <tr><td style="background:#fafaf9;font-weight:600;">Reporting date</td><td>${esc(
-        unitInfo.date
-      )}</td><td style="background:#fafaf9;font-weight:600;">Inbound date</td><td>${esc(unitInfo.inboundDate)}</td></tr>
-      <tr><td style="background:#fafaf9;font-weight:600;">RTM name/number</td><td>${esc(
-        unitInfo.rtm
-      )}</td><td style="background:#fafaf9;font-weight:600;">H-code</td><td>${esc(unitInfo.hcode)}</td></tr>
-      <tr><td style="background:#fafaf9;font-weight:600;">N#</td><td colspan="3">${esc(unitInfo.n)}</td></tr>
+    <table class="info" style="width:100%;border-collapse:collapse;margin-bottom:24px;table-layout:fixed;">
+      <colgroup><col style="width:16%;"/><col style="width:46%;"/><col style="width:19%;"/><col style="width:19%;"/></colgroup>
+      <tr>
+        <td style="background:#fafaf9;font-weight:600;">Name operator</td><td>${esc(unitInfo.operator)}</td>
+        <td colspan="2" style="background:#fafaf9;font-weight:600;text-align:center;">Signed by SL</td>
+      </tr>
+      <tr>
+        <td style="background:#fafaf9;font-weight:600;">Reporting date</td><td>${esc(unitInfo.date)}</td>
+        <td rowspan="5" style="text-align:center;vertical-align:middle;font-weight:600;">${esc(unitInfo.signedBySL || "(name)")}</td>
+        <td rowspan="5" style="text-align:center;vertical-align:middle;font-weight:600;">(initial)</td>
+      </tr>
+      <tr><td style="background:#fafaf9;font-weight:600;">Inbound date</td><td>${esc(unitInfo.inboundDate)}</td></tr>
+      <tr><td style="background:#fafaf9;font-weight:600;">RTM name/number</td><td>${esc(unitInfo.rtm)}</td></tr>
+      <tr><td style="background:#fafaf9;font-weight:600;">H-code</td><td>${esc(unitInfo.hcode)}</td></tr>
+      <tr><td style="background:#fafaf9;font-weight:600;">N#</td><td>${esc(unitInfo.n)}</td></tr>
     </table>
 
     <div class="cover-block">
@@ -2164,76 +2168,24 @@ function App() {
 
             <div className="report-body px-6 py-5">
               {/* Header info block */}
-              <table className="w-full text-xs border border-stone-300 mb-6 avoid-break">
+              <table className="w-full text-xs border border-stone-300 mb-6 avoid-break table-fixed">
+                <colgroup><col className="w-[16%]" /><col className="w-[46%]" /><col className="w-[19%]" /><col className="w-[19%]" /></colgroup>
                 <tbody>
                   <tr className="border-b border-stone-300">
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 w-40 border-r border-stone-300">Name operator</td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.operator}
-                        onChange={(e) => handleUnitInfoChange("operator", e.target.value)}
-                      />
-                    </td>
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 w-32 border-r border-l border-stone-300">
-                      Signed by SL
-                    </td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.signedBySL}
-                        onChange={(e) => handleUnitInfoChange("signedBySL", e.target.value)}
-                      />
-                    </td>
+                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">Name operator</td>
+                    <td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.operator} onChange={(e) => handleUnitInfoChange("operator", e.target.value)} /></td>
+                    <td colSpan={2} className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 text-center">Signed by SL</td>
                   </tr>
                   <tr className="border-b border-stone-300">
                     <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">Reporting date</td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.date}
-                        onChange={(e) => handleUnitInfoChange("date", e.target.value)}
-                      />
-                    </td>
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-l border-stone-300">
-                      Inbound date
-                    </td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.inboundDate}
-                        onChange={(e) => handleUnitInfoChange("inboundDate", e.target.value)}
-                      />
-                    </td>
+                    <td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.date} onChange={(e) => handleUnitInfoChange("date", e.target.value)} /></td>
+                    <td rowSpan={5} className="px-2 py-1.5 border-r border-stone-300 text-center align-middle font-medium"><input className="report-input w-full text-center text-xs outline-none" value={unitInfo.signedBySL} placeholder="(name)" onChange={(e) => handleUnitInfoChange("signedBySL", e.target.value)} /></td>
+                    <td rowSpan={5} className="px-2 py-1.5 text-center align-middle font-medium">(initial)</td>
                   </tr>
-                  <tr className="border-b border-stone-300">
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">RTM name/number</td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.rtm}
-                        onChange={(e) => handleUnitInfoChange("rtm", e.target.value)}
-                      />
-                    </td>
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-l border-stone-300">H-code</td>
-                    <td className="px-2.5 py-1.5">
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.hcode}
-                        onChange={(e) => handleUnitInfoChange("hcode", e.target.value)}
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">N#</td>
-                    <td className="px-2.5 py-1.5" colSpan={3}>
-                      <input
-                        className="report-input w-full text-xs outline-none border-b border-stone-200"
-                        value={unitInfo.n}
-                        onChange={(e) => handleUnitInfoChange("n", e.target.value)}
-                      />
-                    </td>
-                  </tr>
+                  <tr className="border-b border-stone-300"><td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">Inbound date</td><td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.inboundDate} onChange={(e) => handleUnitInfoChange("inboundDate", e.target.value)} /></td></tr>
+                  <tr className="border-b border-stone-300"><td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">RTM name/number</td><td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.rtm} onChange={(e) => handleUnitInfoChange("rtm", e.target.value)} /></td></tr>
+                  <tr className="border-b border-stone-300"><td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">H-code</td><td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.hcode} onChange={(e) => handleUnitInfoChange("hcode", e.target.value)} /></td></tr>
+                  <tr><td className="px-2.5 py-1.5 font-medium text-slate-500 bg-stone-50 border-r border-stone-300">N#</td><td className="px-2.5 py-1.5 border-r border-stone-300"><input className="report-input w-full text-xs outline-none border-b border-stone-200" value={unitInfo.n} onChange={(e) => handleUnitInfoChange("n", e.target.value)} /></td></tr>
                 </tbody>
               </table>
 
