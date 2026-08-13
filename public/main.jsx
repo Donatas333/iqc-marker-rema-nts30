@@ -665,9 +665,9 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:54px; padding:12px 24px; border-bottom:3px solid #0f172a; font-size:12px; }
-  .ftr { display:flex; justify-content:center; align-items:flex-end; height:50px; padding:4px 24px 2px; border-top:1px solid #cbd5e1; }
-  .ftr img { height:32px !important; width:auto; max-width:88%; object-fit:contain; }
-  .rbody { padding:78px 18px 60px; }
+  .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:82px; padding:6px 24px 3px; border-top:1px solid #cbd5e1; }
+  .ftr img { height:58px !important; width:auto; max-width:64%; object-fit:contain; }
+  .rbody { padding:78px 18px 92px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
   table.spares { width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed; }
@@ -772,7 +772,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       ${sparePartsHtml}
     </section>
   </div>
-  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:32px;max-width:88%;object-fit:contain;" /></div>
+  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:58px;max-width:64%;object-fit:contain;" /></div>
 </div>
 </body></html>`;
 }
