@@ -129,30 +129,30 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     return blocks
       .map((block, idx) => {
         const heading = block.hasDiagram
-          ? `<p style="font-size:11px;color:#475569;margin:0;padding:0 2px 7px;font-weight:600;">${chapterNo}.${block.partIndex + 1} ${titleFn(
+          ? `<p style="grid-column:1 / -1;font-size:11px;color:#475569;margin:0;padding:4px 2px 2px;font-weight:600;">${chapterNo}.${block.partIndex + 1} ${titleFn(
               block.part.reportName || block.part.name
             )}</p>`
           : "";
         const diagramCell = block.hasDiagram
-          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;aspect-ratio:1/1;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
+          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;border:1px solid #d6d3ce;border-radius:6px;aspect-ratio:1/1;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
               block.part.img
             }" style="width:100%;height:auto;border-radius:4px;display:block;" /></div><p style="font-size:11px;font-weight:600;color:#1e293b;text-align:center;margin:8px 0 0;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(
               block.part.code
             )}</span><br/>${esc(block.part.name)}</p></div>`
           : "";
-        const photoCells = block.photos.length === 0 ? `<div style="aspect-ratio:1/1;background:#f8fafc;border:1px dashed #94a3b8;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:13px;font-weight:600;color:#64748b;">No records</div>` : block.photos
+        const photoCells = block.photos.length === 0 ? `<div style="aspect-ratio:1/1;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:13px;font-weight:600;color:#64748b;">No records</div>` : block.photos
           .map((photo) => {
             const capt = photo.caption
               ? `<p style="font-size:10px;color:#475569;padding:4px 6px;margin:0;background:#fff;word-break:break-word;">${esc(
                   photo.caption
                 )}</p>`
               : "";
-            return `<div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#fff;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
+            return `<div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#fff;border:1px solid #d6d3ce;border-radius:6px;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
           })
           .join("");
         const emptyNote = "";
         const breakStyle = idx === 0 ? "" : "break-before:page;padding-top:68px;";
-        return `<table role="presentation" style="width:min(100%,660px);margin:0 auto 20px;border-collapse:collapse;break-inside:avoid;page-break-inside:avoid;${breakStyle}"><tr><td style="padding:0;">${heading}</td></tr><tr><td style="padding:0;"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;">${diagramCell}${photoCells}</div></td></tr></table>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;page-break-inside:avoid;${breakStyle}"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(100%,660px);margin:0 auto;padding:0;background:transparent;border:0;border-radius:0;overflow:visible;break-inside:avoid;page-break-inside:avoid;">${heading}${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
