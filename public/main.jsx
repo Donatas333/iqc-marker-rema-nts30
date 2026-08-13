@@ -134,20 +134,20 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
             )}</p>`
           : "";
         const diagramCell = block.hasDiagram
-          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;border:1px solid #d6d3ce;border-radius:6px;aspect-ratio:1/1;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
+          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;border:1px solid #d6d3ce;border-radius:6px;aspect-ratio:5/4;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
               block.part.img
             }" style="width:100%;height:auto;border-radius:4px;display:block;" /></div><p style="font-size:11px;font-weight:600;color:#1e293b;text-align:center;margin:8px 0 0;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(
               block.part.code
             )}</span><br/>${esc(block.part.name)}</p></div>`
           : "";
-        const photoCells = block.photos.length === 0 ? `<div style="aspect-ratio:1/1;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:13px;font-weight:600;color:#64748b;">No records</div>` : block.photos
+        const photoCells = block.photos.length === 0 ? `<div style="aspect-ratio:5/4;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:13px;font-weight:600;color:#64748b;">No records</div>` : block.photos
           .map((photo, photoIndex) => {
             const capt = photo.caption
               ? `<p style="font-size:10px;color:#475569;padding:4px 6px;margin:0;background:#fff;word-break:break-word;">${esc(
                   photo.caption
                 )}</p>`
               : "";
-            return `<div style="position:relative;aspect-ratio:${photoIndex === 0 ? "1/1" : "4/3"};overflow:hidden;background:#fff;border:1px solid #d6d3ce;border-radius:6px;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
+            return `<div style="position:relative;aspect-ratio:${photoIndex === 0 ? "5/4" : "4/3"};overflow:hidden;background:#fff;border:1px solid #d6d3ce;border-radius:6px;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
           })
           .join("");
         const emptyNote = "";
