@@ -97,7 +97,7 @@ function markDivHtml(mark) {
 
 function photoImgHtml(photo, borderColor) {
   const capt = photo.caption ? `<p style="font-size:10px;color:#475569;margin:3px 0 0;">${esc(photo.caption)}</p>` : "";
-  return `<div><img src="${photo.dataUrl}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;border:1px solid ${borderColor};display:block;" />${capt}</div>`;
+  return `<div><img src="${photo.dataUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;border:1px solid ${borderColor};display:block;" />${capt}</div>`;
 }
 
 function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
@@ -119,7 +119,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
             )}</p>`
           : "";
         const diagramCell = block.hasDiagram
-          ? `<div style="border-right:1px solid #d6d3ce;border-bottom:1px solid #d6d3ce;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;aspect-ratio:4/3;box-sizing:border-box;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
+          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;aspect-ratio:1/1;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
               block.part.img
             }" style="width:100%;height:auto;border-radius:4px;display:block;" /></div><p style="font-size:11px;font-weight:600;color:#1e293b;text-align:center;margin:8px 0 0;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(
               block.part.code
@@ -132,7 +132,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
                   photo.caption
                 )}</p>`
               : "";
-            return `<div style="border-right:1px solid #d6d3ce;border-bottom:1px solid #d6d3ce;display:flex;flex-direction:column;"><div style="aspect-ratio:4/3;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
+            return `<div style="position:relative;aspect-ratio:1/1;overflow:hidden;background:#fff;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
           })
           .join("");
         const emptyNote =
@@ -140,7 +140,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
             ? `<p style="font-size:11px;color:#cbd5e1;margin:4px 0 0;">No ${markType === "stain" ? "stains" : "damage"} recorded.</p>`
             : "";
         const breakStyle = idx === 0 ? "" : "break-before:page;";
-        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(100%,560px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
@@ -156,7 +156,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   const overviewHtml =
     overviewPhotos.length === 0
       ? `<p style="font-size:12px;color:#94a3b8;">No overview photos added.</p>`
-      : `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">${overviewPhotos
+      : `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(100%,560px);margin:0 auto;break-inside:avoid;">${overviewPhotos
           .map((ph) => `<div><p style="font-size:10px;font-weight:600;color:#475569;margin:0 0 4px;">${ph.category === "h-number" ? "H number photo" : "REMA overview photo"}</p>${photoImgHtml(ph, "#d6d3ce")}</div>`)
           .join("")}</div>`;
 
@@ -182,18 +182,19 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   * { box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
-  .hdr { display:flex; justify-content:space-between; align-items:center; padding:10px 24px; border-bottom:2px solid #0f172a; font-size:11px; }
-  .ftr { display:flex; justify-content:center; padding:8px 24px; border-top:1px solid #e7e5e0; }
-  .rbody { padding:20px 24px; }
-  h3 { font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; color:#0f172a; margin:22px 0 6px; }
+  .hdr { display:flex; justify-content:space-between; align-items:center; min-height:54px; padding:12px 24px; border-bottom:3px solid #0f172a; font-size:12px; }
+  .ftr { display:flex; justify-content:center; align-items:center; min-height:76px; padding:12px 24px; border-top:1px solid #cbd5e1; }
+  .ftr img { height:48px !important; width:auto; }
+  .rbody { padding:78px 24px 98px; }
+  h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
   @media print {
     body { background: #fff; }
-    .hdr { position: fixed; top:0; left:0; right:0; background:#fff; }
-    .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; }
-    .rbody { margin-top:48px; padding-bottom:60px; }
-    h3.chapter-break { break-before: page; }
-    @page { size: A4; margin: 14mm 12mm 20mm 12mm; }
+    .hdr { position: fixed; top:0; left:0; right:0; background:#fff; z-index:10; }
+    .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
+    .rbody { padding:78px 24px 98px; }
+    h3.chapter-break { break-before: page; padding-top:64px; margin-top:0; }
+    @page { size: A4; margin: 14mm 12mm 28mm 12mm; }
   }
 </style>
 </head>
@@ -235,7 +236,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 3: Other remarks &amp; observations</p>
     ${remarksHtml}
   </div>
-  <div class="ftr"><img src="${LOGO_DATA_URL}" style="height:26px;" /></div>
+  <div class="ftr"><img src="${LOGO_DATA_URL}" style="height:48px;" /></div>
 </div>
 </body></html>`;
 }
@@ -1063,7 +1064,7 @@ function App() {
 
   function openReportInNewTab() {
     try {
-      const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
+      const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }));
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       const win = window.open(url, "_blank");
       if (!win) {
@@ -1078,7 +1079,7 @@ function App() {
 
   function downloadReportHtml() {
     try {
-      const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
+      const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }));
       const blob = new Blob([html], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1097,7 +1098,7 @@ function App() {
 
   function exportPdf() {
     try {
-      const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
+      const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }));
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       const frame = document.createElement("iframe");
       frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
@@ -1128,7 +1129,7 @@ function App() {
 
   function exportWord() {
     try {
-      const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
+      const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }));
       const blob = new Blob([html], { type: "application/msword" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
