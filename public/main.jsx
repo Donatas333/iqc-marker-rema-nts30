@@ -292,6 +292,30 @@ function readImageFile(file) {
   });
 }
 
+function repairMojibake(text) {
+  let fixed = text;
+  for (let pass = 0; pass < 2 && /[ÃƒÃ‚Ã¢]/.test(fixed); pass += 1) {
+    try {
+      const decoded = decodeURIComponent(escape(fixed));
+      if (decoded === fixed) break;
+      fixed = decoded;
+    } catch (error) {
+      break;
+    }
+  }
+  return fixed;
+}
+
+function repairVisibleText(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach((node) => {
+    const repaired = repairMojibake(node.nodeValue);
+    if (repaired !== node.nodeValue) node.nodeValue = repaired;
+  });
+}
+
 // Every uploaded photo goes through this editor. Keeping the crop operation in
 // the browser makes it fast, works offline, and means only the smaller square
 // image is saved with the inspection.
@@ -560,6 +584,29 @@ function App() {
   const fontLoaded = useRef(false);
 
   useEffect(() => {
+    repairVisibleText(document.body);
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === "characterData") {
+          const repaired = repairMojibake(mutation.target.nodeValue);
+          if (repaired !== mutation.target.nodeValue) mutation.target.nodeValue = repaired;
+        } else {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const repaired = repairMojibake(node.nodeValue);
+              if (repaired !== node.nodeValue) node.nodeValue = repaired;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              repairVisibleText(node);
+            }
+          });
+        }
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (fontLoaded.current) return;
     fontLoaded.current = true;
     const link1 = document.createElement("link");
@@ -780,7 +827,7 @@ function App() {
   async function saveCroppedPhoto(dataUrl) {
     if (!cropRequest) return;
     const { target, files, index } = cropRequest;
-    const photo = { id: uid(), dataUrl, caption: "", size: 160 };
+    const photo = { id: uid(), dataUrl, caption: "", size: 160, category: target.category || "rema-overview" };
     if (target.kind === "overview") {
       setOverviewPhotos((prev) => {
         const next = [...prev, photo];
@@ -821,8 +868,8 @@ function App() {
     }));
   }
 
-  function addOverviewPhotos(fileList) {
-    startCrop({ kind: "overview" }, fileList);
+  function addOverviewPhotos(category, fileList) {
+    startCrop({ kind: "overview", category }, fileList);
   }
 
   function setOverviewPhotoSize(photoId, size) {
@@ -1010,7 +1057,8 @@ function App() {
       win.document.open();
       win.document.write(html);
       win.document.close();
-      win.onload = () => win.print();
+      win.focus();
+      setTimeout(() => win.print(), 700);
     } catch (e) {
       showToast("Couldn't prepare the PDF", true);
     }
@@ -1161,18 +1209,42 @@ function App() {
             <h2 className="text-lg text-slate-900 mb-1" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600 }}>
               CHAPTER 1 Ã¢â‚¬â€ GENERAL IMPRESSION
             </h2>
-            <p className="text-xs text-slate-400 mb-4">Overall photos of the incoming unit, before any part-level inspection.</p>
+            <p className="text-xs text-slate-400 mb-4">Enter the inspection details, then add the two required overview photo types.</p>
+            <div className="bg-white border border-stone-300 rounded-lg p-4 mb-4">
+              <h3 className="text-sm text-slate-800 mb-3" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 500 }}>INCOMING QUALITY CONTROL DETAILS</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[["operator", "Name operator"], ["signedBySL", "Signed by SL"], ["date", "Reporting date"], ["inboundDate", "Inbound date"], ["rtm", "RTM name/number"], ["hcode", "H-code"], ["n", "N#"]].map(([key, label]) => (
+                  <label key={key} className={key === "n" ? "sm:col-span-2" : ""}>
+                    <span className="block text-xs font-medium text-slate-500 mb-1">{label}</span>
+                    <input value={unitInfo[key]} onChange={(e) => handleUnitInfoChange(key, e.target.value)} className="w-full text-sm border border-stone-300 rounded px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                  </label>
+                ))}
+              </div>
+            </div>
             <div className="bg-white border border-stone-300 rounded-lg p-4">
               <PhotoBucket
-                title="Overview photos"
+                title="H number photo"
                 accent="amber"
-                photos={overviewPhotos}
-                onAdd={addOverviewPhotos}
+                photos={overviewPhotos.filter((photo) => photo.category === "h-number")}
+                onAdd={(files) => addOverviewPhotos("h-number", files)}
                 onRemove={removeOverviewPhoto}
                 onCaption={updateOverviewCaption}
                 onResize={setOverviewPhotoSize}
                 onOpenLightbox={setLightbox}
                 hint="Photos are automatically resized and laid out Ã¢â‚¬â€ no manual resizing or positioning needed. Tap the corner icon on a photo to enlarge it if a detail is hard to see."
+              />
+            </div>
+            <div className="bg-white border border-stone-300 rounded-lg p-4 mt-4">
+              <PhotoBucket
+                title="REMA overview photo"
+                accent="amber"
+                photos={overviewPhotos.filter((photo) => photo.category !== "h-number")}
+                onAdd={(files) => addOverviewPhotos("rema-overview", files)}
+                onRemove={removeOverviewPhoto}
+                onCaption={updateOverviewCaption}
+                onResize={setOverviewPhotoSize}
+                onOpenLightbox={setLightbox}
+                hint="Upload the full incoming-unit overview photo."
               />
             </div>
           </div>
