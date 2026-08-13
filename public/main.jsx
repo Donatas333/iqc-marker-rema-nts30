@@ -654,7 +654,16 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           )
           .join("")}</tbody></table>`;
 
-  const sparePartsHtml = `<table class="spares"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>${SPARE_PARTS.map((p) => `<tr><td>${p.item}</td><td>${p.code}</td><td>${p.description}</td><td>${p.quantity}</td><td>${p.isah}</td><td></td><td></td><td></td></tr>`).join("")}</tbody></table>`;
+  const sparePartsTableHtml = (items) =>
+    '<table class="spares" style="break-inside:avoid;page-break-inside:avoid;"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
+    items.map((p) => '<tr><td>' + p.item + '</td><td>' + p.code + '</td><td>' + p.description + '</td><td>' + p.quantity + '</td><td>' + p.isah + '</td><td></td><td></td><td></td></tr>').join("") +
+    '</tbody></table>';
+  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "27");
+  const sparePartsHtml =
+    sparePartsTableHtml(SPARE_PARTS.slice(0, sparePartsSplitAt + 1)) +
+    '<div style="break-before:page;padding-top:68px;">' +
+    sparePartsTableHtml(SPARE_PARTS.slice(sparePartsSplitAt + 1)) +
+    '</div>';
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
