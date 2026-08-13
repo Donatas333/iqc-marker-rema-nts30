@@ -152,7 +152,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           .join("");
         const emptyNote = "";
         const breakStyle = idx === 0 ? "" : "break-before:page;padding-top:68px;";
-        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(100%,660px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(100%,660px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
