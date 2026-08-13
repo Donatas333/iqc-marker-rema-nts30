@@ -294,6 +294,18 @@ function readImageFile(file) {
 
 function repairMojibake(text) {
   let fixed = text;
+  const literalFixes = [
+    ["\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u201d", " - "],
+    ["\u00c3\u00a2\u00e2\u201a\u00ac\u00e2\u20ac\u201c", " - "],
+    ["\u00e2\u20ac\u201d", " - "],
+    ["\u00e2\u20ac\u201c", " - "],
+    ["\u00c3\u201a\u00c2\u00b7", " / "],
+    ["\u00c2\u00b7", " / "],
+    ["\u00e2\u20ac\u00a6", "..."],
+  ];
+  literalFixes.forEach(([from, to]) => {
+    fixed = fixed.split(from).join(to);
+  });
   const cp1252 = {
     "â‚¬": 0x80, "â€š": 0x82, "Æ’": 0x83, "â€ž": 0x84, "â€¦": 0x85, "â€ ": 0x86, "â€¡": 0x87,
     "Ë†": 0x88, "â€°": 0x89, "Å ": 0x8a, "â€¹": 0x8b, "Å’": 0x8c, "Å½": 0x8e, "â€˜": 0x91,
