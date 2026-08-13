@@ -1624,34 +1624,56 @@ function App() {
     }
   }
 
-  function exportPdf() {
+  function loadPdfExportLibrary() {
+    if (window.html2pdf) return Promise.resolve(window.html2pdf);
+    if (window.__iqcHtml2PdfPromise) return window.__iqcHtml2PdfPromise;
+    window.__iqcHtml2PdfPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+      script.onload = () => window.html2pdf ? resolve(window.html2pdf) : reject(new Error("PDF library did not load"));
+      script.onerror = () => reject(new Error("PDF library could not be loaded"));
+      document.head.appendChild(script);
+    });
+    return window.__iqcHtml2PdfPromise;
+  }
+
+  async function exportPdf() {
+    let frame;
+    let url;
     try {
+      showToast("Preparing PDF download...", false);
       const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
-      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      const frame = document.createElement("iframe");
-      frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
-      frame.onload = () => {
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          frame.remove();
-        }, 60000);
-      };
-      frame.src = url;
+      url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      frame = document.createElement("iframe");
+      frame.style.cssText = "position:fixed;left:-20000px;top:0;width:794px;height:1123px;border:0;visibility:hidden";
       document.body.appendChild(frame);
-      return;
-      if (!win) {
-        showToast("Pop-up blocked  -  allow pop-ups for this page, then try again", true);
-        return;
-      }
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(() => win.print(), 700);
+      await new Promise((resolve, reject) => {
+        frame.onload = resolve;
+        frame.onerror = () => reject(new Error("Report preview could not be prepared"));
+        frame.src = url;
+      });
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      const html2pdf = await loadPdfExportLibrary();
+      const report = frame.contentDocument.querySelector(".sheet");
+      if (!report) throw new Error("Report content was not found");
+      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-NTS30").replace(/[^a-z0-9-]+/gi, "_");
+      await html2pdf()
+        .set({
+          margin: 0,
+          filename: `IQC-${namePart}.pdf`,
+          image: { type: "jpeg", quality: 0.96 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          pagebreak: { mode: ["css", "legacy"] },
+        })
+        .from(report)
+        .save();
+      showToast("PDF downloaded - no browser URL or print headers included", false);
     } catch (e) {
-      showToast("Couldn't prepare the PDF", true);
+      showToast("PDF export failed - " + (e && e.message ? e.message : "unknown error"), true);
+    } finally {
+      if (frame) frame.remove();
+      if (url) URL.revokeObjectURL(url);
     }
   }
 
@@ -2146,9 +2168,8 @@ function App() {
               </div>
             </div>
             <p className="text-[11px] text-slate-400 bg-stone-50 border border-stone-200 rounded-md px-2.5 py-2">
-              <strong>Open report</strong> opens the finished document in a new browser tab  -  from there use your browser's own
-              Ctrl/Cmd+P to save it as a PDF. If a pop-up blocker stops it, allow pop-ups for this page and click again. Download and
-              Print are alternatives in case those work better in your setup.
+              <strong>Export PDF</strong> downloads a clean report PDF directly, without browser URLs, dates, or print headers.
+              <strong> Open report</strong> is only for reviewing the finished document in a new browser tab.
             </p>
           </div>
 
