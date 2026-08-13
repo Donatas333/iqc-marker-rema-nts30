@@ -680,9 +680,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:68px; padding:12px 28px; border-bottom:3px solid #0f172a; font-size:16px; } .hdr > span:first-child { font-size:23px; line-height:1; }
-  .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:60px; padding:4px 24px 2px; border-top:1px solid #cbd5e1; }
-  .ftr img { height:42px !important; width:auto; max-width:58%; object-fit:contain; }
-  .rbody { padding:78px 18px 70px; }
+  .ftr { display:none; }
+    .rbody { padding:78px 18px 20px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
   table.spares { width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed; }
@@ -697,10 +696,10 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:-1mm; left:0; right:0; background:#fff; z-index:10; }
-    .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
-    .rbody { padding:88px 18px 70px; }
-    h3.chapter-break { break-before: page; padding-top:58px; margin-top:0; }
-    @page { size: A4; margin: 10mm 10mm 20mm 10mm; }
+    .ftr { display:none !important; }
+    .rbody { padding:96px 18px 20px; }
+    h3.chapter-break { break-before: page; padding-top:0; margin-top:36px; }
+    @page { size: A4; margin: 10mm 10mm 10mm 10mm; }
   }
 </style>
 </head>
@@ -787,7 +786,6 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       ${sparePartsHtml}
     </section>
   </div>
-  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:42px;max-width:58%;object-fit:contain;" /></div>
 </div>
 </body></html>`;
 }
@@ -2380,9 +2378,7 @@ function App() {
               </div>
             </div>
 
-            <div className="print-footer flex items-center justify-center px-6 py-2 border-t border-stone-200">
-              <img src={LOGO_DATA_URL} alt="HQ Group" style={{ height: 26 }} />
-            </div>
+
           </div>
         </div>
       )}
