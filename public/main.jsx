@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import footerImage from "./assets/footer-image.js";
+import hNumberExampleImage from "./assets/h-number-example-image.js";
+import remaOverviewExampleImage from "./assets/rema-overview-example-image.js";
 import carrierCoverImage from "./assets/carrier-cover-image.js";
 import carrierAssyImage from "./assets/carrier-assy-image.js";
 import bladeBeamImage from "./assets/blade-beam-image.js";
@@ -514,8 +516,8 @@ const SPARE_PARTS = [
 ];
 
 const SIZE_PCT = { S: 4.5, M: 7.5, L: 14, XL: 22, XXL: 32 };
-const SAMPLE_H_NUMBER = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><rect width="800" height="800" fill="#f8fafc"/><rect x="54" y="54" width="692" height="692" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="6"/><text x="400" y="245" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="#334155">H NUMBER PHOTO</text><rect x="145" y="330" width="510" height="138" rx="12" fill="#e2e8f0"/><text x="400" y="418" text-anchor="middle" font-family="monospace" font-size="66" font-weight="700" fill="#0f172a">H-123456</text><text x="400" y="575" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#64748b">Example - replace with uploaded photo</text></svg>`);
-const SAMPLE_REMA_OVERVIEW = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><rect width="800" height="800" fill="#f8fafc"/><rect x="54" y="54" width="692" height="692" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="6"/><rect x="184" y="190" width="432" height="270" rx="28" fill="#dbeafe" stroke="#4470c0" stroke-width="12"/><circle cx="290" cy="325" r="56" fill="#93c5fd"/><path d="M385 390h130l-28-128h-74z" fill="#4470c0"/><text x="400" y="545" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="#334155">REMA OVERVIEW PHOTO</text><text x="400" y="610" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#64748b">Example - replace with uploaded photo</text></svg>`);
+const SAMPLE_H_NUMBER = hNumberExampleImage;
+const SAMPLE_REMA_OVERVIEW = remaOverviewExampleImage;
 let FOOTER_DATA_URL = footerImage;
 const DAMAGE_COLOR = "#F1090A";
 const STAIN_COLOR = "#4470C0";
