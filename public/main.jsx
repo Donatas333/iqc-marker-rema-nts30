@@ -381,7 +381,7 @@ const SPARE_PARTS = [
   {
     "item": "36.2",
     "code": "4022.689.10373",
-    "description": "REMA BLADE COVER BEAM RAIL",
+    "description": "REMA BLADE COVER SQR. TUBE",
     "quantity": "1",
     "isah": "104004957"
   },
@@ -402,7 +402,7 @@ const SPARE_PARTS = [
   {
     "item": "37",
     "code": "4022.489.88018",
-    "description": "PIN PAR REM 63T X11",
+    "description": "PIN PAR CRN M6 STL 6X32",
     "quantity": "2",
     "isah": "104002784"
   },
@@ -683,9 +683,9 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     body { background: #fff; }
     .hdr { position: fixed; top:0; left:0; right:0; background:#fff; z-index:10; }
     .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
-    .rbody { padding:78px 18px 52px; }
+    .rbody { padding:78px 18px 92px; }
     h3.chapter-break { break-before: page; padding-top:58px; margin-top:0; }
-    @page { size: A4; margin: 10mm 10mm 12mm 10mm; }
+    @page { size: A4; margin: 22mm 10mm 32mm 10mm; }
   }
 </style>
 </head>
