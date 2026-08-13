@@ -665,9 +665,9 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:54px; padding:12px 24px; border-bottom:3px solid #0f172a; font-size:12px; }
-  .ftr { display:flex; justify-content:center; align-items:flex-end; height:42px; padding:3px 24px 2px; border-top:1px solid #cbd5e1; }
-  .ftr img { height:24px !important; width:auto; max-width:88%; object-fit:contain; }
-  .rbody { padding:78px 18px 52px; }
+  .ftr { display:flex; justify-content:center; align-items:flex-end; height:50px; padding:4px 24px 2px; border-top:1px solid #cbd5e1; }
+  .ftr img { height:32px !important; width:auto; max-width:88%; object-fit:contain; }
+  .rbody { padding:78px 18px 60px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
   table.spares { width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed; }
@@ -744,7 +744,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <p style="font-size:11px;color:#475569;margin:0 0 9px;">Copy and drag the circle over damaged parts. Copy and drag the triangle over stained parts.</p>
     <div style="display:flex;align-items:center;gap:38px;margin:0 0 12px;font-size:10px;font-weight:600;color:#334155;">
       <span style="display:flex;align-items:center;gap:8px;">ITEMS WITH DAMAGE <i style="display:inline-block;width:24px;height:24px;border:3px solid #F1090A;border-radius:50%;box-sizing:border-box;"></i></span>
-      <span style="display:flex;align-items:center;gap:8px;">ITEMS WITH STAINS <i style="display:inline-block;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:27px solid #4470C0;position:relative;"></i></span>
+      <span style="display:flex;align-items:center;gap:8px;">ITEMS WITH STAINS <svg width="31" height="28" viewBox="0 0 31 28" aria-label="Stain mark"><path d="M15.5 2 L29 26 L2 26 Z" fill="none" stroke="#4470C0" stroke-width="3"/></svg></span>
     </div>
     ${quickscanHtml}
 
@@ -772,7 +772,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       ${sparePartsHtml}
     </section>
   </div>
-  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:24px;max-width:88%;object-fit:contain;" /></div>
+  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:32px;max-width:88%;object-fit:contain;" /></div>
 </div>
 </body></html>`;
 }
