@@ -122,7 +122,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     if (index % 4 === 0) pages.push([]);
     pages[pages.length - 1].push(part);
     return pages;
-  }, []).map((page, index) => `<div style="${index ? "break-before:page;" : ""}break-inside:avoid;"><div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
+  }, []).map((page, index) => `<div style="${index ? "break-before:page;padding-top:68px;" : ""}break-inside:avoid;"><div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
 
   function chapterBlock(chapterNo, titleFn, photoKey, markType) {
     const blocks = buildChapterBlocks(PARTS, partData, photoKey, markType);
@@ -151,7 +151,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           })
           .join("");
         const emptyNote = "";
-        const breakStyle = idx === 0 ? "" : "break-before:page;";
+        const breakStyle = idx === 0 ? "" : "break-before:page;padding-top:68px;";
         return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(3,1fr);gap:6px;width:min(100%,660px);margin:0 auto;padding:6px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;break-inside:avoid;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
@@ -241,15 +241,21 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <p style="font-size:11px;color:#94a3b8;margin:0 0 8px;">Circle outline = damage. Triangle outline = stain.</p>
     ${quickscanHtml}
 
-    <h3 class="chapter-break">CHAPTER 3  -  MOLECULAR CONTAMINATION (STAINS)</h3>
-    ${chapter3Html}
+    <section style="break-before:page;padding-top:68px;">
+      <h3>CHAPTER 3  -  MOLECULAR CONTAMINATION (STAINS)</h3>
+      ${chapter3Html}
+    </section>
 
-    <h3 class="chapter-break">CHAPTER 4  -  DAMAGES (SCRATCHES, SCUFFS, PITTINGS, RUST, BENT, TEARS)</h3>
-    ${chapter4Html}
+    <section style="break-before:page;padding-top:68px;">
+      <h3>CHAPTER 4  -  DAMAGES (SCRATCHES, SCUFFS, PITTINGS, RUST, BENT, TEARS)</h3>
+      ${chapter4Html}
+    </section>
 
-    <h3 class="chapter-break">CHAPTER 5  -  OTHER REMARKS &amp; OBSERVATIONS</h3>
+    <section style="break-before:page;padding-top:68px;">
+      <h3>CHAPTER 5  -  OTHER REMARKS &amp; OBSERVATIONS</h3>
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 3: Other remarks &amp; observations</p>
     ${remarksHtml}
+    </section>
   </div>
   <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:24px;max-width:88%;object-fit:contain;" /></div>
 </div>
