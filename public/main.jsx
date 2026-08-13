@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { Circle, Triangle, Move, Trash2, X, Copy, Check, Loader2, Plus, Minus, RotateCcw, Printer, ImagePlus, Download, ExternalLink } from "lucide-react";
 // The original builder provides window.storage. On Vercel we persist each
