@@ -713,8 +713,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       <p class="cover-name">NTS30</p>
       <ul>
         <li>Create one document per H-code.</li>
-        <li>File template location: T:\Service Center\01. Operations\18. Checklist Executed\NTS\NTS30\Cleanroom - Incoming Quality Control\Template file\</li>
-        <li>Save completed files in T:\Service Center\01. Operations\18. Checklist Executed\NTS\NTS30\Cleanroom - Incoming Quality Control\</li>
+        <li>File template location: T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\NTS30\\Cleanroom - Incoming Quality Control\\Template file\\</li>
+        <li>Save completed files in T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\NTS30\\Cleanroom - Incoming Quality Control\\</li>
         <li>File name: [IQC] - [RTM name] - [H-code] - [date in format YYYYMMDD].docx</li>
         <li>Also fill in the checklist. Both documents need to be completed.</li>
       </ul>
