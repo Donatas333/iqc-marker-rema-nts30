@@ -239,7 +239,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <h3 class="chapter-break">CHAPTER 2  -  QUICKSCAN</h3>
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 4px;">Table 2: Quickscan table</p>
     <p style="font-size:11px;color:#94a3b8;margin:0 0 8px;">Circle outline = damage. Triangle outline = stain.</p>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">${quickscanHtml}</div>
+    ${quickscanHtml}
 
     <h3 class="chapter-break">CHAPTER 3  -  MOLECULAR CONTAMINATION (STAINS)</h3>
     ${chapter3Html}
@@ -251,7 +251,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 3: Other remarks &amp; observations</p>
     ${remarksHtml}
   </div>
-  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:34px;max-width:92%;object-fit:contain;" /></div>
+  <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:28px;max-width:88%;object-fit:contain;" /></div>
 </div>
 </body></html>`;
 }
