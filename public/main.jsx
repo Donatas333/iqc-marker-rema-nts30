@@ -526,6 +526,11 @@ const ACCENTS = {
   amber: { active: "border-amber-400 bg-amber-50", text: "text-amber-600", solid: "bg-amber-500" },
 };
 
+function getNtsModel(rtm) {
+  const match = String(rtm || "").match(/\bNTS\s*[-_ ]?(\d{2})/i);
+  return match ? `NTS${match[1]}` : "NTS30";
+}
+
 function buildPageBlocks(photos) {
   if (photos.length === 0) return [{ hasDiagram: true, photos: [] }];
   const blocks = [];
@@ -578,6 +583,7 @@ function photoImgHtml(photo, borderColor) {
 }
 
 function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
+  const reportModel = getNtsModel(unitInfo.rtm);
   function quickscanCardHtml(p) {
     const d = partData[p.id] || EMPTY_PART;
     const marks = d.marks.map(markDivHtml).join("");
@@ -667,7 +673,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
-<title>IQC Report  -  ${esc(unitInfo.hcode || "REMA NTS30")}</title>
+<title>IQC Report  -  ${esc(unitInfo.hcode || ("REMA " + reportModel))}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" />
 <style>
   * { box-sizing: border-box; }
@@ -700,7 +706,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 </head>
 <body>
 <div class="sheet">
-  <div class="hdr"><span style="font-family:'Oswald',sans-serif;font-weight:600;">INCOMING QUALITY CONTROL  -  NTS30</span><span style="font-family:'IBM Plex Mono',monospace;color:#64748b;">${esc(
+  <div class="hdr"><span style="font-family:'Oswald',sans-serif;font-weight:600;">INCOMING QUALITY CONTROL  -  ${reportModel}</span><span style="font-family:'IBM Plex Mono',monospace;color:#64748b;">${esc(
     unitInfo.hcode || "H-code  - "
   )}</span></div>
   <div class="rbody">
@@ -723,11 +729,11 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 
     <div class="cover-block">
       <p class="cover-label">Product scope</p>
-      <p class="cover-name">NTS30</p>
+      <p class="cover-name">${reportModel}</p>
       <ul>
         <li>Create one document per H-code.</li>
-        <li>File template location: T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\NTS30\\Cleanroom - Incoming Quality Control\\Template file\\</li>
-        <li>Save completed files in T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\NTS30\\Cleanroom - Incoming Quality Control\\</li>
+        <li>File template location: T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\${reportModel}\\Cleanroom - Incoming Quality Control\\Template file\\</li>
+        <li>Save completed files in T:\\Service Center\\01. Operations\\18. Checklist Executed\\NTS\\${reportModel}\\Cleanroom - Incoming Quality Control\\</li>
         <li>File name: [IQC] - [RTM name] - [H-code] - [date in format YYYYMMDD].docx</li>
         <li>Also fill in the checklist. Both documents need to be completed.</li>
       </ul>
@@ -1629,7 +1635,7 @@ function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-NTS30").replace(/[^a-z0-9-]+/gi, "_");
+      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-" + getNtsModel(unitInfo.rtm)).replace(/[^a-z0-9-]+/gi, "_");
       a.download = `IQC-${namePart}.html`;
       document.body.appendChild(a);
       a.click();
@@ -1678,7 +1684,7 @@ function App() {
       const blob = new Blob([html], { type: "application/msword" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-NTS30").replace(/[^a-z0-9-]+/gi, "_");
+      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-" + getNtsModel(unitInfo.rtm)).replace(/[^a-z0-9-]+/gi, "_");
       a.href = url;
       a.download = `IQC-${namePart}.doc`;
       document.body.appendChild(a);
@@ -1691,6 +1697,7 @@ function App() {
     }
   }
 
+  const reportModel = getNtsModel(unitInfo.rtm);
   const selectedMark = activeData.marks.find((m) => m.id === selectedMarkId);
 
   if (!loaded) {
@@ -1731,7 +1738,7 @@ function App() {
               className="text-lg sm:text-xl tracking-wide uppercase text-white"
               style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, letterSpacing: "0.04em" }}
             >
-              IQC Marker <span className="text-slate-400 font-normal normal-case text-sm"> -  REMA NTS30</span>
+              IQC Marker <span className="text-slate-400 font-normal normal-case text-sm"> -  REMA {reportModel}</span>
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 ml-0 sm:ml-auto text-xs">
@@ -2172,7 +2179,7 @@ function App() {
           <div id="report-root" className="max-w-[820px] mx-auto bg-white border border-stone-300 shadow-sm">
             <div className="print-header flex items-center justify-between px-6 py-2.5 border-b-2 border-slate-900 text-[11px]">
               <span className="text-slate-800" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600, letterSpacing: "0.02em" }}>
-                INCOMING QUALITY CONTROL  -  NTS30
+                INCOMING QUALITY CONTROL  -  {reportModel}
               </span>
               <span className="text-slate-500" style={{ fontFamily: "'IBM Plex Mono', monospace" }}>
                 {unitInfo.hcode || "H-code  - "}
