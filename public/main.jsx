@@ -49,15 +49,11 @@ const ACCENTS = {
 };
 
 function buildPageBlocks(photos) {
-  if (photos.length === 0) return [{ hasDiagram: true, photos: [] }];
+  if (photos.length === 0) return [];
   const blocks = [];
-  let i = 0;
-  let first = true;
-  while (i < photos.length) {
-    const capacity = first ? 5 : 6;
-    blocks.push({ hasDiagram: first, photos: photos.slice(i, i + capacity) });
-    i += capacity;
-    first = false;
+  for (let i = 0; i < photos.length; i += 5) {
+    // Every report page is a six-tile sheet: the marked drawing plus five photos.
+    blocks.push({ hasDiagram: true, photos: photos.slice(i, i + 5) });
   }
   return blocks;
 }
@@ -67,7 +63,9 @@ function buildChapterBlocks(partsList, partDataMap, photoKey, markType) {
   partsList.forEach((p, pi) => {
     const d = partDataMap[p.id] || EMPTY_PART;
     const marks = d.marks.filter((m) => m.type === markType);
-    buildPageBlocks(d[photoKey]).forEach((b) => {
+    const pages = buildPageBlocks(d[photoKey]);
+    if (pages.length === 0 && marks.length > 0) pages.push({ hasDiagram: true, photos: [] });
+    pages.forEach((b) => {
       flat.push({ part: p, partIndex: pi, marks, ...b });
     });
   });
@@ -142,7 +140,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
             ? `<p style="font-size:11px;color:#cbd5e1;margin:4px 0 0;">No ${markType === "stain" ? "stains" : "damage"} recorded.</p>`
             : "";
         const breakStyle = idx === 0 ? "" : "break-before:page;";
-        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(2,1fr);border-top:1px solid #d6d3ce;border-left:1px solid #d6d3ce;border-radius:6px;overflow:hidden;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;${breakStyle}">${heading}<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:5px;background:#e7e5e0;border:1px solid #d6d3ce;border-radius:6px;overflow:hidden;">${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
@@ -158,8 +156,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   const overviewHtml =
     overviewPhotos.length === 0
       ? `<p style="font-size:12px;color:#94a3b8;">No overview photos added.</p>`
-      : `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">${overviewPhotos
-          .map((ph) => photoImgHtml(ph, "#d6d3ce"))
+      : `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">${overviewPhotos
+          .map((ph) => `<div><p style="font-size:10px;font-weight:600;color:#475569;margin:0 0 4px;">${ph.category === "h-number" ? "H number photo" : "REMA overview photo"}</p>${photoImgHtml(ph, "#d6d3ce")}</div>`)
           .join("")}</div>`;
 
   const remarksHtml =
@@ -847,6 +845,13 @@ function App() {
     }));
   }
 
+  function setSelectedMarkSize(markId, size) {
+    updatePartData(activePartId, (d) => ({
+      ...d,
+      marks: d.marks.map((m) => (m.id === markId ? { ...m, size } : m)),
+    }));
+  }
+
   function clearMarks() {
     updatePartData(activePartId, (d) => ({ ...d, marks: [] }));
     setSelectedMarkId(null);
@@ -1440,32 +1445,6 @@ function App() {
                   ))}
                 </div>
 
-                {selectedMark && mode === "select" && (
-                  <div className="mt-3 flex items-center justify-center gap-2 bg-stone-50 border border-stone-200 rounded-lg py-2 px-3 w-fit mx-auto">
-                    <span className={`text-xs font-medium ${selectedMark.type === "damage" ? "text-red-600" : "text-blue-600"}`}>
-                      {selectedMark.type === "damage" ? "Damage mark" : "Stain mark"}
-                    </span>
-                    <button
-                      onClick={() => resizeMark(selectedMark.id, -1)}
-                      className="w-7 h-7 flex items-center justify-center rounded border border-stone-300 bg-white hover:bg-stone-100 text-slate-600"
-                    >
-                      <Minus size={13} />
-                    </button>
-                    <span className="text-xs w-4 text-center text-slate-500">{selectedMark.size}</span>
-                    <button
-                      onClick={() => resizeMark(selectedMark.id, 1)}
-                      className="w-7 h-7 flex items-center justify-center rounded border border-stone-300 bg-white hover:bg-stone-100 text-slate-600"
-                    >
-                      <Plus size={13} />
-                    </button>
-                    <button
-                      onClick={() => deleteMark(selectedMark.id)}
-                      className="w-7 h-7 flex items-center justify-center rounded border border-red-200 bg-white hover:bg-red-50 text-red-600 ml-1"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                )}
               </div>
 
               <div className="mt-5 grid sm:grid-cols-2 gap-5">
@@ -1499,6 +1478,41 @@ function App() {
               </p>
             </div>
           </div>
+          <aside className="lg:w-64 shrink-0 bg-stone-100 border-t lg:border-t-0 lg:border-l border-stone-300 p-3 space-y-3">
+            <section className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Selected mark</h3>
+              {selectedMark ? (
+                <>
+                  <div className="flex items-center gap-3 mb-3">
+                    {selectedMark.type === "damage" ? <Circle size={47} className="text-red-600" strokeWidth={3} /> : <Triangle size={49} className="text-blue-600" strokeWidth={3} />}
+                    <div className="text-sm text-slate-600 leading-5"><div className="font-semibold">{selectedMark.type === "damage" ? "Damage" : "Stain"}</div><div>Size: {selectedMark.size}</div></div>
+                  </div>
+                  <div className="text-sm font-medium text-slate-600 mb-1.5">Size</div>
+                  <div className="flex rounded-md border border-stone-300 overflow-hidden mb-3">
+                    {["S", "M", "L", "XL", "XXL"].map((size) => (
+                      <button key={size} onClick={() => setSelectedMarkSize(selectedMark.id, size)} className={`flex-1 h-9 text-xs font-semibold ${selectedMark.size === size ? "bg-amber-400 text-slate-900" : "bg-white text-slate-500 hover:bg-stone-50"} ${size !== "S" ? "border-l border-stone-300" : ""}`}>{size}</button>
+                    ))}
+                  </div>
+                  <button onClick={() => deleteMark(selectedMark.id)} className="flex items-center justify-center gap-2 w-full border border-red-300 text-red-600 rounded-md py-2 text-sm font-semibold hover:bg-red-50"><Trash2 size={16} /> Delete</button>
+                </>
+              ) : <p className="text-xs text-slate-400 leading-5">Select a circle or triangle on the drawing to change its size or delete it.</p>}
+            </section>
+            <section className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Mark counts</h3>
+              <div className="space-y-2.5 text-sm text-slate-600">
+                <div className="flex items-center gap-2"><Circle size={31} className="text-red-600 shrink-0" strokeWidth={3} /><span>Damage</span><strong className="ml-auto text-slate-800">{totals.damage}</strong></div>
+                <div className="flex items-center gap-2"><Triangle size={33} className="text-blue-600 shrink-0" strokeWidth={3} /><span>Stain</span><strong className="ml-auto text-slate-800">{totals.stain}</strong></div>
+                <div className="pt-2 border-t border-stone-200 flex justify-between text-xs text-slate-500"><span>Evidence photos</span><strong>{totals.damagePhotos + totals.stainPhotos + overviewPhotos.length}</strong></div>
+              </div>
+            </section>
+            <section className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-700 mb-3">Quick guide</h3>
+              <div className="space-y-3 text-sm text-slate-600">
+                <div className="flex items-center gap-3"><Circle size={40} className="text-red-600 shrink-0" strokeWidth={3} /><div><strong className="block text-slate-700">Damage</strong><span className="text-xs">Red circle (hollow)</span></div></div>
+                <div className="flex items-center gap-3"><Triangle size={42} className="text-blue-600 shrink-0" strokeWidth={3} /><div><strong className="block text-slate-700">Stain</strong><span className="text-xs">Blue triangle (hollow)</span></div></div>
+              </div>
+            </section>
+          </aside>
         </div>
       )}
 
@@ -1702,9 +1716,10 @@ function App() {
               {overviewPhotos.length === 0 ? (
                 <p className="text-xs text-slate-400 mb-6">No overview photos added.</p>
               ) : (
-                <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="grid grid-cols-2 gap-2 mb-6">
                   {overviewPhotos.map((photo) => (
                     <div key={photo.id} className="avoid-break">
+                      <p className="text-[10px] font-semibold text-slate-600 mb-1">{photo.category === "h-number" ? "H number photo" : "REMA overview photo"}</p>
                       <div className="rounded border border-stone-300 overflow-hidden">
                         <PhotoImage photo={photo} />
                       </div>
@@ -1750,9 +1765,9 @@ function App() {
                       3.{block.partIndex + 1} Molecular contamination (stains) on {block.part.name}
                     </p>
                   )}
-                  <div className="grid grid-cols-2 border border-stone-300 rounded overflow-hidden">
+                  <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-stone-200 border border-stone-300 rounded overflow-hidden">
                     {block.hasDiagram && (
-                      <div className="border-r border-b border-stone-300 p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
+                      <div className="p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
                         <div className="relative w-full max-w-[220px]">
                           <img src={block.part.img} alt={block.part.name} className="w-full h-auto rounded block" />
                         </div>
@@ -1764,7 +1779,7 @@ function App() {
                       </div>
                     )}
                     {block.photos.map((photo) => (
-                      <div key={photo.id} className="border-r border-b border-stone-300 flex flex-col">
+                      <div key={photo.id} className="flex flex-col bg-white">
                         <div className="aspect-[4/3] overflow-hidden">
                           <img src={photo.dataUrl} alt="" className="w-full h-full object-cover block" />
                         </div>
@@ -1789,9 +1804,9 @@ function App() {
                       4.{block.partIndex + 1} Damages (scratches, scuffs, pittings, rust, bent, tears) on {block.part.name}
                     </p>
                   )}
-                  <div className="grid grid-cols-2 border border-stone-300 rounded overflow-hidden">
+                  <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-stone-200 border border-stone-300 rounded overflow-hidden">
                     {block.hasDiagram && (
-                      <div className="border-r border-b border-stone-300 p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
+                      <div className="p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
                         <div className="relative w-full max-w-[220px]">
                           <img src={block.part.img} alt={block.part.name} className="w-full h-auto rounded block" />
                         </div>
@@ -1803,7 +1818,7 @@ function App() {
                       </div>
                     )}
                     {block.photos.map((photo) => (
-                      <div key={photo.id} className="border-r border-b border-stone-300 flex flex-col">
+                      <div key={photo.id} className="flex flex-col bg-white">
                         <div className="aspect-[4/3] overflow-hidden">
                           <img src={photo.dataUrl} alt="" className="w-full h-full object-cover block" />
                         </div>
