@@ -1037,7 +1037,7 @@ function Marker({ mark, selected, onPointerDown }) {
   );
 }
 
-function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onResize, onOpenLightbox, hint }) {
+function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onEdit, onOpenLightbox, hint, exampleImage }) {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const a = ACCENTS[accent] || ACCENTS.amber;
@@ -1066,6 +1066,12 @@ function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onResi
         }}
         className="flex flex-wrap gap-2.5 mb-1.5"
       >
+        {exampleImage && (
+          <div className="relative bg-white border border-stone-300 rounded-lg overflow-hidden shrink-0" style={{ width: 160 }}>
+            <img src={exampleImage} alt={`${title} example`} className="w-full h-40 object-cover block bg-stone-100" />
+            <p className="text-xs px-2 py-1.5 border-t border-stone-200 bg-stone-50 text-slate-600">{title} - example</p>
+          </div>
+        )}
         {photos.map((photo) => {
           const w = photo.size || 160;
           return (
@@ -1080,18 +1086,10 @@ function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onResi
               >
                 <X size={13} />
               </button>
-              <div className="flex items-center gap-1.5 border-t border-stone-200 bg-stone-50 px-2 py-1">
-                <span className="text-[9px] text-slate-400 shrink-0">Size</span>
-                <input
-                  type="range"
-                  min={90}
-                  max={360}
-                  step={10}
-                  value={w}
-                  onChange={(e) => onResize(photo.id, Number(e.target.value))}
-                  className="flex-1 accent-amber-500 h-3"
-                />
-                <span className="text-[9px] text-slate-400 w-7 text-right shrink-0">{w}px</span>
+              <div className="border-t border-stone-200 bg-stone-50 px-2 py-1.5">
+                <button type="button" onClick={() => onEdit(photo)} className="w-full text-xs font-medium text-slate-600 hover:text-amber-700">
+                  Edit photo
+                </button>
               </div>
               <input
                 value={photo.caption}
@@ -1126,20 +1124,6 @@ function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onResi
           }}
         />
       </div>
-      <input
-        type="text"
-        placeholder="Tap here, then use Paste to add a copied photo"
-        onPaste={(e) => {
-          const files = extractImageFilesFromClipboard(e.clipboardData);
-          if (files.length) {
-            e.preventDefault();
-            onAdd(files);
-          }
-        }}
-        onChange={() => {}}
-        value=""
-        className="w-full text-xs text-center text-slate-400 border border-dashed border-stone-300 rounded-lg py-2 bg-white focus:outline-none focus:border-amber-400 mb-1.5"
-      />
       {hint && <p className="text-[11px] text-slate-400">{hint}</p>}
     </div>
   );
@@ -1431,6 +1415,15 @@ function App() {
   async function saveCroppedPhoto(dataUrl) {
     if (!cropRequest) return;
     const { target, files, index } = cropRequest;
+    if (target.kind === "overview-edit") {
+      setOverviewPhotos((prev) => {
+        const next = prev.map((p) => (p.id === target.photoId ? { ...p, dataUrl } : p));
+        persistOverview(next);
+        return next;
+      });
+      setCropRequest(null);
+      return;
+    }
     const photo = { id: uid(), dataUrl, caption: "", size: 160, category: target.category || "rema-overview" };
     if (target.kind === "overview") {
       setOverviewPhotos((prev) => {
@@ -1482,6 +1475,10 @@ function App() {
       persistOverview(next);
       return next;
     });
+  }
+
+  function editOverviewPhoto(photo) {
+    setCropRequest({ target: { kind: "overview-edit", photoId: photo.id }, files: [{ name: "photo.jpg" }], index: 0, source: photo.dataUrl });
   }
 
   function removeOverviewPhoto(photoId) {
@@ -1846,9 +1843,10 @@ function App() {
                 onAdd={(files) => addOverviewPhotos("h-number", files)}
                 onRemove={removeOverviewPhoto}
                 onCaption={updateOverviewCaption}
-                onResize={setOverviewPhotoSize}
+                onEdit={editOverviewPhoto}
                 onOpenLightbox={setLightbox}
-                hint="Photos are automatically resized and laid out  -  no manual resizing or positioning needed. Tap the corner icon on a photo to enlarge it if a detail is hard to see."
+                exampleImage={SAMPLE_H_NUMBER}
+                hint="Use Edit photo to crop and adjust an uploaded image."
               />
             </div>
             <div className="bg-white border border-stone-300 rounded-lg p-4 mt-4">
@@ -1859,9 +1857,10 @@ function App() {
                 onAdd={(files) => addOverviewPhotos("rema-overview", files)}
                 onRemove={removeOverviewPhoto}
                 onCaption={updateOverviewCaption}
-                onResize={setOverviewPhotoSize}
+                onEdit={editOverviewPhoto}
                 onOpenLightbox={setLightbox}
-                hint="Upload the full incoming-unit overview photo."
+                exampleImage={SAMPLE_REMA_OVERVIEW}
+                hint="Use Edit photo to crop and adjust an uploaded image."
               />
             </div>
           </div>
