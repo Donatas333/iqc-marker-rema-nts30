@@ -679,7 +679,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   * { box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
-  .hdr { display:flex; justify-content:space-between; align-items:center; min-height:68px; padding:12px 28px; border-bottom:3px solid #0f172a; font-size:16px; } .hdr > span:first-child { font-size:20px; line-height:1; }
+  .hdr { display:flex; justify-content:space-between; align-items:center; min-height:68px; padding:12px 28px; border-bottom:3px solid #0f172a; font-size:16px; } .hdr > span:first-child { font-size:23px; line-height:1; }
   .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:82px; padding:6px 24px 3px; border-top:1px solid #cbd5e1; }
   .ftr img { height:58px !important; width:auto; max-width:64%; object-fit:contain; }
   .rbody { padding:78px 18px 92px; }
@@ -696,8 +696,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   .cover-overview { margin-top:22px; }
   @media print {
     body { background: #fff; }
-    .hdr { position: fixed; top:-7mm; left:0; right:0; background:#fff; z-index:10; }
-    .ftr { position: fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
+    .hdr { position: fixed; top:-8mm; left:0; right:0; background:#fff; z-index:10; }
+    .ftr { position: fixed; bottom:-26mm; left:0; right:0; background:#fff; z-index:10; }
     .rbody { padding:88px 18px 92px; }
     h3.chapter-break { break-before: page; padding-top:58px; margin-top:0; }
     @page { size: A4; margin: 10mm 10mm 32mm 10mm; }
