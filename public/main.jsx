@@ -48,6 +48,233 @@ const PARTS = [
   { id: "tool-interface", code: "4022.625.0759X", name: "Rema Tool Interface Assy", reportName: "REMA Tool Interface Assembly", img: toolInterfaceImage },
 ];
 
+const SPARE_PARTS = [
+  {
+    "item": "1",
+    "code": "4022.489.50403",
+    "description": "CASTOR SWVL STL ZN PA 150-8000DFTR-12-ST",
+    "quantity": "4",
+    "isah": "101420241"
+  },
+  {
+    "item": "2.1",
+    "code": "4022.489.91246",
+    "description": "SCREW HXS CAP SC A2 M10X20",
+    "quantity": "16",
+    "isah": "101127091"
+  },
+  {
+    "item": "2.2",
+    "code": "4022.489.97211",
+    "description": "WASHER SST 10.5X20",
+    "quantity": "16",
+    "isah": "101128531"
+  },
+  {
+    "item": "3",
+    "code": "4022.489.51001",
+    "description": "CHAIN SST 1.5X14.3X38.2",
+    "quantity": "1",
+    "isah": "101186501"
+  },
+  {
+    "item": "4.1",
+    "code": "4022.638.42861",
+    "description": "DAMPER CB 1-4004CM02 COATED",
+    "quantity": "4",
+    "isah": "101520071"
+  },
+  {
+    "item": "4.2",
+    "code": "4022.489.98692",
+    "description": "SCREW HXS CSK NICRSTL A2C M8X35",
+    "quantity": "32",
+    "isah": "101182371"
+  },
+  {
+    "item": "5.1",
+    "code": "4022.489.70345",
+    "description": "CONNECTOR UMP M1/8-18UNF-1/4",
+    "quantity": "2",
+    "isah": "101522061"
+  },
+  {
+    "item": "5.2",
+    "code": "4022.489.60401",
+    "description": "GASKET UHP RING N 1/4",
+    "quantity": "2",
+    "isah": "101217091"
+  },
+  {
+    "item": "5.3",
+    "code": "4022.489.50601",
+    "description": "CAP UHP UNX D SST 1/4-1/16-18",
+    "quantity": "2",
+    "isah": "101520051"
+  },
+  {
+    "item": "6.1",
+    "code": "4022.629.00065",
+    "description": "SCREW HXS CAP VAC CAPT SST EP-K M8X50",
+    "quantity": "28",
+    "isah": "101413621"
+  },
+  {
+    "item": "6.2",
+    "code": "4022.489.20889",
+    "description": "WASHER LRG HVY SST 8.4X21X4",
+    "quantity": "28",
+    "isah": "101306791"
+  },
+  {
+    "item": "7.1",
+    "code": "4022.453.85462",
+    "description": "REMA NXS TOOL 2",
+    "quantity": "2",
+    "isah": "N/A"
+  },
+  {
+    "item": "7.2",
+    "code": "4022.629.00169",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X35",
+    "quantity": "2",
+    "isah": "101405921"
+  },
+  {
+    "item": "7.3",
+    "code": "4022.489.90567",
+    "description": "WASHER SST A4 8.4X12",
+    "quantity": "2",
+    "isah": "101322401"
+  },
+  {
+    "item": "8",
+    "code": "4022.689.10241",
+    "description": "REMA COVER PEN",
+    "quantity": "1",
+    "isah": "N/A"
+  },
+  {
+    "item": "9",
+    "code": "4022.626.60480",
+    "description": "O-RING FKM V0747 1315X7",
+    "quantity": "1",
+    "isah": "101520041"
+  },
+  {
+    "item": "10",
+    "code": "4022.645.05581",
+    "description": "NXE REMA CLAMP STRIP 1",
+    "quantity": "2",
+    "isah": "101513761"
+  },
+  {
+    "item": "11",
+    "code": "4022.645.05591",
+    "description": "NXE REMA CLAMP STRIP 2",
+    "quantity": "2",
+    "isah": "101513761"
+  },
+  {
+    "item": "12.1",
+    "code": "4022.689.50061",
+    "description": "NXE REMA CLAMP BLOCK",
+    "quantity": "1",
+    "isah": "101513781"
+  },
+  {
+    "item": "12.2",
+    "code": "4022.629.00168",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X20",
+    "quantity": "2",
+    "isah": "101515741"
+  },
+  {
+    "item": "13",
+    "code": "4022.681.24411",
+    "description": "VACUUM FLANGE COVER ASSY",
+    "quantity": "1",
+    "isah": "N/A"
+  },
+  {
+    "item": "14",
+    "code": "4022.689.07584",
+    "description": "NXE REMA TOOL INTERFACE ASSY",
+    "quantity": "8",
+    "isah": "101513891"
+  },
+  {
+    "item": "15",
+    "code": "4022.629.00469",
+    "description": "SCREW HXS CAP VAC CAPT SST EP-K M6X25",
+    "quantity": "16",
+    "isah": "101430121"
+  },
+  {
+    "item": "16",
+    "code": "4022.681.00411",
+    "description": "MNT INTERFACE SUPPORT RING",
+    "quantity": "8",
+    "isah": "101531241"
+  },
+  {
+    "item": "17",
+    "code": "4022.629.00879",
+    "description": "SCREW HXS CAP VAC CAPT SST EP-K M6X70",
+    "quantity": "8",
+    "isah": "101515781"
+  },
+  {
+    "item": "18",
+    "code": "4022.645.05573",
+    "description": "NXE REMA INTERFACE BLOCK",
+    "quantity": "4",
+    "isah": "104002776"
+  },
+  {
+    "item": "19",
+    "code": "4022.629.00172",
+    "description": "SCREW HXS CAP VAC SST EP-K M6X50",
+    "quantity": "12",
+    "isah": "104002777"
+  },
+  {
+    "item": "20",
+    "code": "4022.626.00144",
+    "description": "INSERT VAC SST M6",
+    "quantity": "4",
+    "isah": "101431531"
+  },
+  {
+    "item": "21",
+    "code": "4022.689.87571",
+    "description": "REMA BLADE CVR PARK POS. PLATE",
+    "quantity": "1",
+    "isah": "104003745"
+  },
+  {
+    "item": "22",
+    "code": "4022.689.83122",
+    "description": "NXE REMA BLADE LOCKING X",
+    "quantity": "4",
+    "isah": "101514052"
+  },
+  {
+    "item": "23",
+    "code": "4022.659.83131",
+    "description": "NXE REMA BLADE LOCKING Y",
+    "quantity": "4",
+    "isah": "101514041"
+  },
+  {
+    "item": "24",
+    "code": "4022.689.10241",
+    "description": "REMA BLADE CVR PARK POS. BTM",
+    "quantity": "2",
+    "isah": "104003749"
+  }
+];
+
 const SIZE_PCT = { S: 4.5, M: 7.5, L: 14, XL: 22, XXL: 32 };
 const SAMPLE_H_NUMBER = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><rect width="800" height="800" fill="#f8fafc"/><rect x="54" y="54" width="692" height="692" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="6"/><text x="400" y="245" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="#334155">H NUMBER PHOTO</text><rect x="145" y="330" width="510" height="138" rx="12" fill="#e2e8f0"/><text x="400" y="418" text-anchor="middle" font-family="monospace" font-size="66" font-weight="700" fill="#0f172a">H-123456</text><text x="400" y="575" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#64748b">Example - replace with uploaded photo</text></svg>`);
 const SAMPLE_REMA_OVERVIEW = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800"><rect width="800" height="800" fill="#f8fafc"/><rect x="54" y="54" width="692" height="692" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="6"/><rect x="184" y="190" width="432" height="270" rx="28" fill="#dbeafe" stroke="#4470c0" stroke-width="12"/><circle cx="290" cy="325" r="56" fill="#93c5fd"/><path d="M385 390h130l-28-128h-74z" fill="#4470c0"/><text x="400" y="545" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" fill="#334155">REMA OVERVIEW PHOTO</text><text x="400" y="610" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" fill="#64748b">Example - replace with uploaded photo</text></svg>`);
@@ -189,6 +416,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           )
           .join("")}</tbody></table>`;
 
+  const sparePartsHtml = `<table class="spares"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>${SPARE_PARTS.map((p) => `<tr><td>${p.item}</td><td>${p.code}</td><td>${p.description}</td><td>${p.quantity}</td><td>${p.isah}</td><td></td><td></td><td></td></tr>`).join("")}</tbody></table>`;
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
 <title>IQC Report  -  ${esc(unitInfo.hcode || "REMA NTS30")}</title>
@@ -203,6 +432,11 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   .rbody { padding:78px 18px 52px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
+  table.spares { width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed; }
+  table.spares th, table.spares td { border:1px solid #a8a29e; padding:3px 4px; vertical-align:middle; overflow-wrap:anywhere; }
+  table.spares th { background:#f5f5f4; font-weight:700; text-align:left; }
+  table.spares th:nth-child(1) { width:6%; } table.spares th:nth-child(2) { width:14%; } table.spares th:nth-child(3) { width:31%; } table.spares th:nth-child(4) { width:7%; } table.spares th:nth-child(5) { width:11%; } table.spares th:nth-child(n+6) { width:10.3%; }
+  table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }
   @media print {
     body { background: #fff; }
     .hdr { position: fixed; top:0; left:0; right:0; background:#fff; z-index:10; }
@@ -255,6 +489,14 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
       <h3>CHAPTER 5  -  OTHER REMARKS &amp; OBSERVATIONS</h3>
     <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 3: Other remarks &amp; observations</p>
     ${remarksHtml}
+    </section>
+
+    <section style="break-before:page;padding-top:68px;">
+      <h3>CHAPTER 6  -  SPARE PARTS LIST</h3>
+      <p style="font-size:12px;font-weight:600;margin:0 0 4px;">6. Spare parts list (missing/damaged spare parts)</p>
+      <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 4px;">Table 6: Spare parts list</p>
+      <p style="font-size:10px;color:#475569;margin:0 0 9px;">Indicate exactly which items are missing, damaged or replaced (use checklist to find item numbers).</p>
+      ${sparePartsHtml}
     </section>
   </div>
   <div class="ftr"><img src="${FOOTER_DATA_URL}" style="height:24px;max-width:88%;object-fit:contain;" /></div>
@@ -1883,9 +2125,18 @@ function App() {
                   </tbody>
                 </table>
               )}
-              <p className="text-[10px] text-slate-300 no-print mt-6">
-                Chapter 6 (spare parts list) isn't generated by this tool yet  -  add it to the exported PDF manually if needed.
-              </p>
+              <h3 className="text-sm text-slate-900 mb-1 chapter-break" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600 }}>
+                CHAPTER 6  -  SPARE PARTS LIST
+              </h3>
+              <p className="text-xs font-semibold text-slate-800 mb-1">6. Spare parts list (missing/damaged spare parts)</p>
+              <p className="text-[11px] text-slate-500 mb-1 italic">Table 6: Spare parts list</p>
+              <p className="text-[10px] text-slate-600 mb-2">Indicate exactly which items are missing, damaged or replaced (use checklist to find item numbers).</p>
+              <div className="overflow-x-auto border border-stone-300 mb-2">
+                <table className="w-full min-w-[700px] text-[9px] border-collapse">
+                  <thead className="bg-stone-50"><tr>{["Item in CL", "12NC", "Description", "Quantity", "ISAH nr.", "Missing", "Damaged", "Replaced"].map((label) => (<th key={label} className="px-1.5 py-1 text-left border-r border-stone-300 last:border-r-0">{label}</th>))}</tr></thead>
+                  <tbody>{SPARE_PARTS.map((p) => (<tr key={p.item} className="border-t border-stone-200"><td className="px-1.5 py-1 border-r border-stone-200">{p.item}</td><td className="px-1.5 py-1 border-r border-stone-200 font-mono">{p.code}</td><td className="px-1.5 py-1 border-r border-stone-200">{p.description}</td><td className="px-1.5 py-1 border-r border-stone-200 text-center">{p.quantity}</td><td className="px-1.5 py-1 border-r border-stone-200">{p.isah}</td><td className="border-r border-stone-200"></td><td className="border-r border-stone-200"></td><td></td></tr>))}</tbody>
+                </table>
+              </div>
             </div>
 
             <div className="print-footer flex items-center justify-center px-6 py-2 border-t border-stone-200">
