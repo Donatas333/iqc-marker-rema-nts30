@@ -294,9 +294,20 @@ function readImageFile(file) {
 
 function repairMojibake(text) {
   let fixed = text;
+  const cp1252 = {
+    "â‚¬": 0x80, "â€š": 0x82, "Æ’": 0x83, "â€ž": 0x84, "â€¦": 0x85, "â€ ": 0x86, "â€¡": 0x87,
+    "Ë†": 0x88, "â€°": 0x89, "Å ": 0x8a, "â€¹": 0x8b, "Å’": 0x8c, "Å½": 0x8e, "â€˜": 0x91,
+    "â€™": 0x92, "â€œ": 0x93, "â€": 0x94, "â€¢": 0x95, "â€“": 0x96, "â€”": 0x97, "Ëœ": 0x98,
+    "â„¢": 0x99, "Å¡": 0x9a, "â€º": 0x9b, "Å“": 0x9c, "Å¾": 0x9e, "Å¸": 0x9f,
+  };
   for (let pass = 0; pass < 2 && /[ÃƒÃ‚Ã¢]/.test(fixed); pass += 1) {
     try {
-      const decoded = decodeURIComponent(escape(fixed));
+      const bytes = Uint8Array.from([...fixed].map((character) => {
+        const code = character.charCodeAt(0);
+        return code <= 0xff ? code : cp1252[character];
+      }));
+      if ([...bytes].some((byte) => byte === undefined)) break;
+      const decoded = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
       if (decoded === fixed) break;
       fixed = decoded;
     } catch (error) {
@@ -1014,14 +1025,13 @@ function App() {
   function openReportInNewTab() {
     try {
       const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
-      const win = window.open("", "_blank");
+      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      const win = window.open(url, "_blank");
       if (!win) {
         showToast("Pop-up blocked Ã¢â‚¬â€ allow pop-ups for this page, then try again", true);
         return;
       }
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (e) {
       showToast("Couldn't open report Ã¢â‚¬â€ " + (e && e.message ? e.message : "unknown error"), true);
     }
@@ -1049,7 +1059,20 @@ function App() {
   function exportPdf() {
     try {
       const html = buildReportHtml({ unitInfo, overviewPhotos, partData, remarks });
-      const win = window.open("", "_blank");
+      const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      const frame = document.createElement("iframe");
+      frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
+      frame.onload = () => {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          frame.remove();
+        }, 60000);
+      };
+      frame.src = url;
+      document.body.appendChild(frame);
+      return;
       if (!win) {
         showToast("Pop-up blocked Ã¢â‚¬â€ allow pop-ups for this page, then try again", true);
         return;
