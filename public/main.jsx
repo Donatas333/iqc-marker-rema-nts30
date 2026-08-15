@@ -625,65 +625,101 @@ function photoImgHtml(photo, borderColor) {
 }
 
 
+async function buildWordSquareImage(src, fit = "cover") {
+  const image = new Image();
+  image.src = src;
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+  });
+  const side = 720;
+  const canvas = document.createElement("canvas");
+  canvas.width = side;
+  canvas.height = side;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, side, side);
+  const scale = fit === "contain"
+    ? Math.min(side / image.naturalWidth, side / image.naturalHeight)
+    : Math.max(side / image.naturalWidth, side / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  ctx.drawImage(image, (side - width) / 2, (side - height) / 2, width, height);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
 async function buildWordHtml(reportData) {
   const sourceHtml = buildReportHtml(reportData).replaceAll("break-before:page;", "break-before:page;page-break-before:always;");
   const sourceDoc = new DOMParser().parseFromString(sourceHtml, "text/html");
 
-  // Word does not reliably keep absolutely positioned SVG overlays in the
-  // correct place. Draw each part and its marks onto one PNG instead.
+  // Word mishandles floating SVG overlays. Replace each quickscan drawing with
+  // a single marked raster image before it is placed in the table.
   await Promise.all(PARTS.map(async (part) => {
     const marks = (reportData.partData[part.id] || EMPTY_PART).marks || [];
     if (marks.length === 0) return;
     const markedImage = await buildWordMarkedPartImage(part, marks);
     sourceDoc.querySelectorAll(`.word-quickscan img[data-part-id="${part.id}"]`).forEach((image) => {
       image.setAttribute("src", markedImage);
-      const card = image.closest("div[style*='border:1px solid']");
-      if (card) card.querySelectorAll("svg").forEach((overlay) => overlay.remove());
+      image.closest("div[style*='border:1px solid']")?.querySelectorAll("svg").forEach((overlay) => overlay.remove());
     });
   }));
 
-  // Explicit inline breaks are more reliable in Word than modern CSS break
-  // properties. Each report chapter therefore begins at the top of a page.
+  // Make every visual a true square bitmap. This prevents Word from stretching
+  // uploaded photos or using their natural dimensions.
+  const allWordImages = Array.from(sourceDoc.querySelectorAll(".word-two-up img"));
+  await Promise.all(allWordImages.map(async (image) => {
+    const src = image.getAttribute("src");
+    if (!src) return;
+    const isPartDrawing = Boolean(image.dataset.partId) || PARTS.some((part) => part.img === src);
+    try {
+      image.setAttribute("src", await buildWordSquareImage(src, isPartDrawing ? "contain" : "cover"));
+    } catch (_) {
+      // Keep the original image if the browser cannot read a source.
+    }
+  }));
+
+  // Use a physical page-break block. Microsoft Word observes this much more
+  // consistently than CSS break-before on an HTML heading.
   sourceDoc.querySelectorAll("h3").forEach((heading) => {
-    const currentStyle = heading.getAttribute("style") || "";
-    heading.setAttribute("style", currentStyle + ";page-break-before:always;mso-break-type:section-break;");
+    const breaker = sourceDoc.createElement("div");
+    breaker.setAttribute("style", "page-break-before:always;clear:both;height:1px;line-height:1px;font-size:1px;");
+    heading.parentNode.insertBefore(breaker, heading);
   });
 
-  // Convert CSS grids into ordinary two-column tables. This is Word's most
-  // dependable layout primitive and keeps every 2 x 3/2 x 2 panel together.
+  function wordTileHtml(cell, side) {
+    const image = cell.querySelector("img");
+    const text = Array.from(cell.querySelectorAll("p"))
+      .map((paragraph) => paragraph.textContent.trim())
+      .filter(Boolean)
+      .map(esc)
+      .join("<br/>");
+    const noRecords = !image && /No records/i.test(cell.textContent);
+    if (noRecords) {
+      return `<div style="width:${side}px;height:${side}px;border:1px dashed #94a3b8;text-align:center;vertical-align:middle;line-height:${side}px;color:#64748b;font-size:11pt;">No records</div>`;
+    }
+    if (!image) return `<div style="width:${side}px;height:${side}px;"></div>`;
+    const src = image.getAttribute("src") || "";
+    return `<div style="width:${side}px;text-align:center;"><img src="${src}" width="${side}" height="${side}" style="display:block;width:${side}px;height:${side}px;border:1px solid #d6d3ce;" />${text ? `<p style="margin:3pt 0 5pt;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</div>`;
+  }
+
+  // CSS grid is not dependable in .doc HTML. Rebuild every report grid using
+  // a fixed, centred two-column table. Chapter pages therefore always hold
+  // six equal square tiles (two columns x three rows).
   sourceDoc.querySelectorAll(".word-two-up").forEach((grid) => {
     const children = Array.from(grid.children);
     const heading = children.find((child) => child.classList && child.classList.contains("word-grid-title"));
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const imageWidth = isChapterGrid ? 230 : isQuickscan ? 220 : 205;
-    const imageHeight = isChapterGrid ? 138 : isQuickscan ? 190 : 205;
-
-    cells.forEach((cell) => {
-      cell.style.aspectRatio = "";
-      cell.style.height = "";
-      cell.style.minHeight = "0";
-      cell.style.pageBreakInside = "avoid";
-      cell.querySelectorAll("img").forEach((image) => {
-        image.setAttribute("width", String(imageWidth));
-        image.setAttribute("height", String(imageHeight));
-        image.setAttribute(
-          "style",
-          (image.getAttribute("style") || "") +
-            `;width:${imageWidth}px !important;height:${imageHeight}px !important;max-width:100% !important;object-fit:contain !important;display:block;margin:0 auto;`
-        );
-      });
-    });
-
+    const tileSize = isChapterGrid ? 160 : isQuickscan ? 205 : 190;
+    const tableWidth = tileSize * 2 + 12;
     const rows = [];
+
     for (let index = 0; index < cells.length; index += 2) {
-      const rowCells = [cells[index], cells[index + 1]].map((cell) =>
-        `<td style="width:50%;vertical-align:top;padding:2pt;page-break-inside:avoid;">${cell ? cell.outerHTML : ""}</td>`
-      );
-      rows.push(`<tr style="page-break-inside:avoid;">${rowCells.join("")}</tr>`);
+      const pair = [cells[index], cells[index + 1]];
+      rows.push(`<tr style="page-break-inside:avoid;">${pair.map((cell) => `<td style="width:${tileSize + 6}px;vertical-align:top;padding:3px;page-break-inside:avoid;">${cell ? wordTileHtml(cell, tileSize) : ""}</td>`).join("")}</tr>`);
     }
-    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>`;
+    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="width:${tableWidth}px;border-collapse:collapse;table-layout:fixed;margin:0 auto;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>`;
   });
 
   const wordOnlyStyles = `<!--[if gte mso 9]>
@@ -698,15 +734,14 @@ async function buildWordHtml(reportData) {
     .rbody { padding:20pt 0 8pt !important; }
     .ftr { display:none !important; }
     .word-two-up { width:100% !important; page-break-inside:avoid !important; }
-    .word-two-up table { width:100% !important; table-layout:fixed !important; page-break-inside:avoid !important; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    .word-two-up table { page-break-inside:avoid !important; }
     .word-two-up tr, .word-two-up td { page-break-inside:avoid !important; vertical-align:top !important; }
     h3 { font-size:16pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
-    table { width:100% !important; }
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
   const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;" /></p></div><![endif]-->`;
-  const html = "<!DOCTYPE html>\n" + sourceDoc.documentElement.outerHTML;
+  const html = "<!DOCTYPE html>\\n" + sourceDoc.documentElement.outerHTML;
   return html
     .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
     .replace("</head>", wordOnlyStyles + "</head>")
