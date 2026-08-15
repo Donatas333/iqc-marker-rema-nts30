@@ -652,12 +652,12 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   const remarksHtml =
     remarks.length === 0
       ? `<p style="font-size:12px;color:#94a3b8;">No remarks.</p>`
-      : `<table style="width:100%;font-size:12px;border-collapse:collapse;border:1px solid #d6d3ce;"><thead><tr style="background:#fafaf9;border-bottom:1px solid #d6d3ce;"><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:32px;">ID</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:150px;">Part</th><th style="text-align:left;padding:6px;">Remark/observation</th></tr></thead><tbody>${remarks
+      : `<table style="width:100%;font-size:12px;border-collapse:collapse;border:1px solid #d6d3ce;"><thead><tr style="background:#fafaf9;border-bottom:1px solid #d6d3ce;"><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:32px;">ID</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:130px;">Part</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:105px;">ISAH nr.</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:45px;">Qty</th><th style="text-align:left;padding:6px;">Remark/observation</th></tr></thead><tbody>${remarks
           .map(
             (r, i) =>
               `<tr style="border-bottom:1px solid #e7e5e0;"><td style="padding:6px;border-right:1px solid #e7e5e0;">${
                 i + 1
-              }</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.part)}</td><td style="padding:6px;">${esc(
+              }</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.part)}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.sparePartIsah || "-")}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.quantity || "-")}</td><td style="padding:6px;">${esc(
                 r.text
               )}</td></tr>`
           )
@@ -979,7 +979,7 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-3 sm:p-6">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
         <div className="px-4 py-3 border-b border-stone-200">
           <h2 className="text-base font-semibold text-slate-900">Crop photo to square</h2>
           <p className="text-xs text-slate-500 mt-0.5 truncate">{fileName}  /  drag to position, then zoom if needed</p>
@@ -998,6 +998,12 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
         <div className="px-4 pb-4">
           <label className="block text-xs font-medium text-slate-600 mb-1.5">Zoom</label>
           <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e) => changeZoom(Number(e.target.value))} className="w-full accent-amber-500" />
+          <div className="mt-3 border-t border-stone-200 pt-3">
+            <p className="text-xs font-medium text-slate-600 mb-1">Original image - reference</p>
+            <div className="h-24 rounded border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden">
+              <img src={source} alt="Original image" className="max-w-full max-h-full object-contain" />
+            </div>
+          </div>
           <div className="mt-4 flex justify-end gap-2">
             <button type="button" onClick={onCancel} className="px-3 py-2 text-sm rounded-md border border-stone-300 text-slate-600 hover:bg-stone-50">Cancel</button>
             <button type="button" onClick={save} className="px-3 py-2 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800">Use square photo</button>
@@ -1415,7 +1421,7 @@ function App() {
 
   async function saveCroppedPhoto(dataUrl) {
     if (!cropRequest) return;
-    const { target, files, index } = cropRequest;
+    const { target, files, index, source } = cropRequest;
     if (target.kind === "overview-edit") {
       setOverviewPhotos((prev) => {
         const next = prev.map((p) => (p.id === target.photoId ? { ...p, dataUrl } : p));
@@ -1433,7 +1439,7 @@ function App() {
       setCropRequest(null);
       return;
     }
-    const photo = { id: uid(), dataUrl, caption: "", size: 160, category: target.category || "rema-overview" };
+    const photo = { id: uid(), dataUrl, originalDataUrl: source, caption: "", size: 160, category: target.category || "rema-overview" };
     if (target.kind === "overview") {
       setOverviewPhotos((prev) => {
         const next = [...prev, photo];
@@ -1495,7 +1501,7 @@ function App() {
       target: { kind: "part-edit", bucketKey, partId: activePartId, photoId: photo.id },
       files: [{ name: "photo.jpg" }],
       index: 0,
-      source: photo.dataUrl,
+      source: photo.originalDataUrl || photo.dataUrl,
     });
   }
 
@@ -1517,7 +1523,7 @@ function App() {
 
   function addRemark() {
     setRemarks((prev) => {
-      const next = [...prev, { id: uid(), part: "General", text: "" }];
+      const next = [...prev, { id: uid(), part: "General", sparePartIsah: "", quantity: "", text: "" }];
       persistRemarks(next);
       return next;
     });
@@ -2094,25 +2100,19 @@ function App() {
               {remarks.map((r, i) => (
                 <div key={r.id} className="bg-white border border-stone-300 rounded-lg p-3 flex gap-2 items-start">
                   <span className="text-xs text-slate-400 w-5 pt-2 shrink-0">{i + 1}</span>
-                  <select
-                    value={r.part}
-                    onChange={(e) => updateRemark(r.id, "part", e.target.value)}
-                    className="text-sm border border-stone-300 rounded px-2 py-1.5 w-40 shrink-0 bg-white"
-                  >
-                    <option value="General">General</option>
-                    {PARTS.map((p) => (
-                      <option key={p.id} value={p.name}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <textarea
-                    value={r.text}
-                    onChange={(e) => updateRemark(r.id, "text", e.target.value)}
-                    placeholder="Remark / observation..."
-                    rows={2}
-                    className="flex-1 text-sm border border-stone-300 rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300"
-                  />
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-[minmax(130px,0.8fr)_minmax(220px,1.6fr)_76px_minmax(180px,1.5fr)] gap-2">
+                    <select value={r.part} onChange={(e) => updateRemark(r.id, "part", e.target.value)} aria-label="Part or other" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
+                      <option value="General">General</option>
+                      <option value="Other">Other</option>
+                      {PARTS.map((p) => (<option key={p.id} value={p.name}>{p.name}</option>))}
+                    </select>
+                    <select value={r.sparePartIsah || ""} onChange={(e) => updateRemark(r.id, "sparePartIsah", e.target.value)} aria-label="ISAH spare part number" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
+                      <option value="">ISAH nr. - no spare part</option>
+                      {SPARE_PARTS.map((p) => (<option key={p.item} value={p.isah}>{p.isah} - {p.description}</option>))}
+                    </select>
+                    <input type="number" min="1" value={r.quantity || ""} onChange={(e) => updateRemark(r.id, "quantity", e.target.value)} placeholder="Qty" aria-label="Quantity needed" className="text-sm border border-stone-300 rounded px-2 py-1.5" />
+                    <textarea value={r.text} onChange={(e) => updateRemark(r.id, "text", e.target.value)} placeholder="Remark / observation..." rows={2} className="min-w-0 text-sm border border-stone-300 rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                  </div>
                   <button onClick={() => removeRemark(r.id)} className="text-slate-400 hover:text-red-600 pt-2 shrink-0">
                     <Trash2 size={15} />
                   </button>
@@ -2353,7 +2353,9 @@ function App() {
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-300">
                       <th className="px-2 py-1.5 text-left w-8 border-r border-stone-300">ID</th>
-                      <th className="px-2 py-1.5 text-left w-36 border-r border-stone-300">Part</th>
+                      <th className="px-2 py-1.5 text-left w-32 border-r border-stone-300">Part</th>
+                      <th className="px-2 py-1.5 text-left w-28 border-r border-stone-300">ISAH nr.</th>
+                      <th className="px-2 py-1.5 text-left w-14 border-r border-stone-300">Qty</th>
                       <th className="px-2 py-1.5 text-left">Remark/observation</th>
                     </tr>
                   </thead>
@@ -2362,6 +2364,8 @@ function App() {
                       <tr key={r.id} className="border-b border-stone-200 avoid-break">
                         <td className="px-2 py-1.5 border-r border-stone-200">{i + 1}</td>
                         <td className="px-2 py-1.5 border-r border-stone-200">{r.part}</td>
+                        <td className="px-2 py-1.5 border-r border-stone-200">{r.sparePartIsah || "-"}</td>
+                        <td className="px-2 py-1.5 border-r border-stone-200">{r.quantity || "-"}</td>
                         <td className="px-2 py-1.5">{r.text}</td>
                       </tr>
                     ))}
