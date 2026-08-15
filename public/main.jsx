@@ -1997,27 +1997,26 @@ function App() {
     try {
       const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      const win = window.open(url, "_blank");
-      if (!win) {
-        URL.revokeObjectURL(url);
-        showToast("Pop-up blocked  -  allow pop-ups for this page, then try again", true);
-        return;
-      }
-      let didPrint = false;
-      const printReport = () => {
-        if (didPrint) return;
-        didPrint = true;
+      const frame = document.createElement("iframe");
+      frame.setAttribute("title", getReportFileStem(unitInfo));
+      frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
+      frame.onload = () => {
         try {
-          win.document.title = getReportFileStem(unitInfo);
-          win.focus();
-          win.print();
+          if (frame.contentDocument) frame.contentDocument.title = getReportFileStem(unitInfo);
+          setTimeout(() => {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+          }, 120);
         } catch (_) {
           showToast("Couldn't prepare the PDF", true);
         }
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          frame.remove();
+        }, 60000);
       };
-      win.addEventListener("load", printReport, { once: true });
-      setTimeout(printReport, 900);
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      frame.src = url;
+      document.body.appendChild(frame);
     } catch (e) {
       showToast("Couldn't prepare the PDF", true);
     }
