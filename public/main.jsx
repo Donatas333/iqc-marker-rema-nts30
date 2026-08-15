@@ -770,6 +770,8 @@ async function buildWordHtml(reportData) {
     body, p, td, th, li, div, span { font-size:11pt !important; }
     h3 { font-size:20pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
     .word-grid-title { font-size:13pt !important; line-height:15pt !important; }
+    table.spares th, table.spares td { font-size:10pt !important; line-height:10.5pt !important; padding:2pt 2.5pt !important; }
+    table.spares tr { page-break-inside:avoid !important; }
     .hdr > table td:first-child { font-size:16pt !important; }
     .hdr > table td:last-child { font-size:11pt !important; text-align:right !important; }
     img { -ms-interpolation-mode:bicubic; }
@@ -864,7 +866,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     '<table class="spares" style="break-inside:avoid;page-break-inside:avoid;"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
     items.map((p) => '<tr><td>' + p.item + '</td><td>' + p.code + '</td><td>' + p.description + '</td><td>' + p.quantity + '</td><td>' + p.isah + '</td><td></td><td></td><td></td></tr>').join("") +
     '</tbody></table>';
-  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "27");
+  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "21");
   const sparePartsHtml =
     sparePartsTableHtml(SPARE_PARTS.slice(0, sparePartsSplitAt + 1)) +
     '<div style="break-before:page;padding-top:68px;">' +
