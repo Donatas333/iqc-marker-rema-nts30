@@ -573,16 +573,50 @@ function markDivHtml(mark) {
   const pct = SIZE_PCT[mark.size] || SIZE_PCT.M;
   const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
   const strokeVB = 6.5;
-  const left = mark.x - pct / 2;
-  const top = mark.y - pct / 2;
   const pos = `position:absolute;left:${mark.x}%;top:${mark.y}%;width:${pct}%;aspect-ratio:1/1;transform:translate(-50%,-50%);overflow:visible;`;
-  const wordShape = mark.type === "damage"
-    ? `<!--[if gte vml 1]><v:oval style="position:absolute;left:${left}%;top:${top}%;width:${pct}%;height:${pct}%;z-index:8" strokecolor="${color}" strokeweight="2pt" fillcolor="#ffffff"><v:fill opacity="0"/></v:oval><![endif]-->`
-    : `<!--[if gte vml 1]><v:shape style="position:absolute;left:${left}%;top:${top}%;width:${pct}%;height:${pct}%;z-index:8" coordsize="100,100" path="m 50,10 l 90,88,10,88 x e" strokecolor="${color}" strokeweight="2pt" fillcolor="#ffffff"><v:fill opacity="0"/></v:shape><![endif]-->`;
   if (mark.type === "damage") {
-    return wordShape + `<svg style="${pos}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" /></svg>`;
+    return `<svg style="${pos}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" /></svg>`;
   }
-  return wordShape + `<svg style="${pos}" viewBox="0 0 100 100"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" stroke-linejoin="round" /></svg>`;
+  return `<svg style="${pos}" viewBox="0 0 100 100"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" stroke-linejoin="round" /></svg>`;
+}
+
+async function buildWordMarkedPartImage(part, marks) {
+  const image = new Image();
+  image.src = part.img;
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = reject;
+  });
+  const side = 900;
+  const canvas = document.createElement("canvas");
+  canvas.width = side;
+  canvas.height = side;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, side, side);
+  const scale = Math.min(side / image.naturalWidth, side / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  ctx.drawImage(image, (side - width) / 2, (side - height) / 2, width, height);
+  marks.forEach((mark) => {
+    const size = ((SIZE_PCT[mark.size] || SIZE_PCT.M) / 100) * side;
+    const x = (mark.x / 100) * side;
+    const y = (mark.y / 100) * side;
+    const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(4, size * 0.065);
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    if (mark.type === "damage") ctx.arc(x, y, size * 0.42, 0, Math.PI * 2);
+    else {
+      ctx.moveTo(x, y - size * 0.4);
+      ctx.lineTo(x + size * 0.4, y + size * 0.38);
+      ctx.lineTo(x - size * 0.4, y + size * 0.38);
+      ctx.closePath();
+    }
+    ctx.stroke();
+  });
+  return canvas.toDataURL("image/png");
 }
 
 function photoImgHtml(photo, borderColor) {
@@ -591,29 +625,35 @@ function photoImgHtml(photo, borderColor) {
 }
 
 
-function buildWordHtml(reportData) {
-  const sourceHtml = buildReportHtml(reportData);
+async function buildWordHtml(reportData) {
+  const sourceHtml = buildReportHtml(reportData).replaceAll("break-before:page;", "break-before:page;page-break-before:always;");
   const sourceDoc = new DOMParser().parseFromString(sourceHtml, "text/html");
-
-  // Word does not support CSS Grid. Replace every photo grid with a native
-  // Word-friendly table, preserving the same two-column / three-row layout.
+  await Promise.all(PARTS.map(async (part) => {
+    const marks = (reportData.partData[part.id] || EMPTY_PART).marks || [];
+    if (marks.length === 0) return;
+    const markedImage = await buildWordMarkedPartImage(part, marks);
+    sourceDoc.querySelectorAll(".word-quickscan img").forEach((image) => {
+      if (image.getAttribute("src") === part.img) image.setAttribute("src", markedImage);
+    });
+  }));
   sourceDoc.querySelectorAll(".word-two-up").forEach((grid) => {
     const children = Array.from(grid.children);
     const heading = children.find((child) => child.classList && child.classList.contains("word-grid-title"));
     const cells = children.filter((child) => child.tagName === "DIV");
+    const isChapterGrid = Boolean(heading);
+    const imageHeight = isChapterGrid ? "170pt" : "220pt";
+    const imageWidth = "250pt";
+    cells.forEach((cell) => cell.querySelectorAll("img").forEach((image) => {
+      image.setAttribute("width", imageWidth.replace("pt", ""));
+      image.setAttribute("height", imageHeight.replace("pt", ""));
+      image.setAttribute("style", (image.getAttribute("style") || "") + `;width:${imageWidth} !important;height:${imageHeight} !important;max-width:100% !important;object-fit:cover;`);
+    }));
     const rows = [];
     for (let index = 0; index < cells.length; index += 2) {
-      rows.push(
-        "<tr>" +
-          [cells[index], cells[index + 1]]
-            .map((cell) => `<td style="width:50%;vertical-align:top;padding:3pt;">${cell ? cell.outerHTML : ""}</td>`)
-            .join("") +
-          "</tr>"
-      );
+      rows.push("<tr>" + [cells[index], cells[index + 1]].map((cell) => `<td style="width:50%;vertical-align:top;padding:3pt;">${cell ? cell.outerHTML : ""}</td>`).join("") + "</tr>");
     }
-    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;">${rows.join("")}</table>`;
+    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:avoid;">${rows.join("")}</table>`;
   });
-
   const wordOnlyStyles = `<!--[if gte mso 9]>
   <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
   <style>
@@ -626,10 +666,9 @@ function buildWordHtml(reportData) {
     .rbody { padding:20pt 0 8pt !important; }
     .ftr { display:none !important; }
     .word-two-up { width:100% !important; }
-    .word-two-up table { width:100% !important; table-layout:fixed !important; }
+    .word-two-up table { width:100% !important; table-layout:fixed !important; page-break-inside:avoid !important; }
     .word-two-up td { vertical-align:top !important; }
-    section, h3.chapter-break { page-break-before:always !important; }
-    h3 { font-size:16pt !important; margin:16pt 0 7pt !important; }
+    h3 { font-size:16pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
     table { width:100% !important; }
     img { -ms-interpolation-mode:bicubic; }
   </style>
@@ -637,7 +676,7 @@ function buildWordHtml(reportData) {
   const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;" /></p></div><![endif]-->`;
   const html = "<!DOCTYPE html>\n" + sourceDoc.documentElement.outerHTML;
   return html
-    .replace("<html><head>", "<html xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
+    .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
     .replace("</head>", wordOnlyStyles + "</head>")
     .replace("<body>", wordFooter + '<body><div class="WordSection1">')
     .replace("</body>", "</div></body>");
@@ -654,7 +693,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     if (index % 4 === 0) pages.push([]);
     pages[pages.length - 1].push(part);
     return pages;
-  }, []).map((page, index) => `<div style="${index ? "break-before:page;padding-top:68px;" : ""}break-inside:avoid;"><div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
+  }, []).map((page, index) => `<div style="${index ? "break-before:page;padding-top:68px;" : ""}break-inside:avoid;"><div class="word-two-up word-quickscan" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
 
   function chapterBlock(chapterNo, titleFn, photoKey, markType) {
     const blocks = buildChapterBlocks(PARTS, partData, photoKey, markType);
@@ -1766,9 +1805,10 @@ function App() {
     }
   }
 
-  function exportWord() {
+  async function exportWord() {
     try {
-      const html = repairMojibake(buildWordHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
+      showToast("Preparing Word document...", false);
+      const html = repairMojibake(await buildWordHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
       const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
