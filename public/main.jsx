@@ -678,12 +678,24 @@ async function buildWordHtml(reportData) {
     }
   }));
 
-  // Use a physical page-break block. Microsoft Word observes this much more
-  // consistently than CSS break-before on an HTML heading.
+  // Use Word's native page-break paragraph immediately before each chapter.
+  // An empty DIV is often ignored by Word, while a real paragraph with content
+  // (a non-breaking space) is respected in both Word desktop and Word Online.
   sourceDoc.querySelectorAll("h3").forEach((heading) => {
-    const breaker = sourceDoc.createElement("div");
-    breaker.setAttribute("style", "page-break-before:always;clear:both;height:1px;line-height:1px;font-size:1px;");
+    if (!/^CHAPTER/i.test(heading.textContent.trim())) return;
+    const breaker = sourceDoc.createElement("p");
+    breaker.innerHTML = "&nbsp;";
+    breaker.setAttribute(
+      "style",
+      "page-break-before:always;mso-break-type:page-break;margin:0;line-height:1pt;font-size:1pt;height:1pt;"
+    );
     heading.parentNode.insertBefore(breaker, heading);
+    heading.setAttribute(
+      "style",
+      (heading.getAttribute("style") || "") + ";page-break-before:always;mso-break-type:page-break;page-break-after:avoid;"
+    );
+    const section = heading.closest("section");
+    if (section) section.setAttribute("style", (section.getAttribute("style") || "") + ";page-break-before:always;");
   });
 
   function wordTileHtml(cell, side) {
