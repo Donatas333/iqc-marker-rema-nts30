@@ -916,11 +916,12 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   .cover-overview { margin-top:22px; }
   @media print {
     body { background: #fff; }
-    .hdr { position: fixed; top:-1mm; left:0; right:0; background:#fff; z-index:10; }
-    .ftr { display:flex !important; position:fixed; bottom:0; left:0; right:0; background:#fff; z-index:10; }
-    .rbody { padding:96px 18px 87px; }
-    h3.chapter-break { break-before: page; padding-top:88px; margin-top:0; }
-    @page { size: A4; margin: 10mm 10mm 6mm 10mm; }
+    .hdr { position:fixed; top:0; left:0; right:0; min-height:54px; padding:6px 18px; background:#fff; z-index:10; }
+    .ftr { display:flex !important; position:fixed; bottom:0.4in; left:0; right:0; height:0.9in; padding:3px 0 0; background:#fff; z-index:10; }
+    .ftr img { width:5in; height:0.83in; max-width:none; object-fit:fill; }
+    .rbody { padding:76px 18px 132px; }
+    h3.chapter-break { break-before: page; padding-top:68px; margin-top:0; }
+    @page { size: A4; margin:0.2in 10mm 1.3in 10mm; }
   }
 </style>
 </head>
