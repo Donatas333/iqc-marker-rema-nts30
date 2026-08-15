@@ -2086,7 +2086,7 @@ function App() {
 
       {view === "remarks" && (
         <div className="p-3 sm:p-5 app-chrome">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-lg text-slate-900" style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 600 }}>
                 CHAPTER 5  -  OTHER REMARKS &amp; OBSERVATIONS
