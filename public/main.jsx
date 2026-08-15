@@ -1951,7 +1951,10 @@ function App() {
         showToast("Pop-up blocked  -  allow pop-ups for this page, then try again", true);
         return;
       }
+      let didPrint = false;
       const printReport = () => {
+        if (didPrint) return;
+        didPrint = true;
         try {
           win.document.title = getReportFileStem(unitInfo);
           win.focus();
