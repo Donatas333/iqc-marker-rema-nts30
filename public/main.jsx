@@ -542,6 +542,71 @@ function getReportFileStem(unitInfo) {
   return ("IQC-" + rtm + " - " + hcode + " - " + date).replace(/[\\/:*?"<>|]+/g, "_");
 }
 
+const PERSIST_DB_NAME = "iqc-marker-rema-report";
+const PERSIST_STORE_NAME = "records";
+
+function openPersistentDb() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB is unavailable"));
+      return;
+    }
+    const request = window.indexedDB.open(PERSIST_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(PERSIST_STORE_NAME)) {
+        request.result.createObjectStore(PERSIST_STORE_NAME);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Unable to open local database"));
+  });
+}
+
+async function readPersisted(key) {
+  try {
+    const db = await openPersistentDb();
+    const value = await new Promise((resolve, reject) => {
+      const request = db.transaction(PERSIST_STORE_NAME, "readonly").objectStore(PERSIST_STORE_NAME).get(key);
+      request.onsuccess = () => resolve(request.result ?? null);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    if (value != null) return value;
+  } catch (_) {
+    // Fall through to the legacy store for existing users.
+  }
+  try {
+    const legacy = await window.storage?.get(key, false);
+    return legacy?.value ?? null;
+  } catch (_) {
+    try {
+      return window.localStorage.getItem("iqc-marker:" + key);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+async function writePersisted(key, value) {
+  try {
+    const db = await openPersistentDb();
+    await new Promise((resolve, reject) => {
+      const request = db.transaction(PERSIST_STORE_NAME, "readwrite").objectStore(PERSIST_STORE_NAME).put(value, key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    return true;
+  } catch (_) {
+    try {
+      window.localStorage.setItem("iqc-marker:" + key, value);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
 function buildPageBlocks(photos) {
   if (photos.length === 0) return [{ hasDiagram: true, photos: [] }];
   const blocks = [];
@@ -1476,27 +1541,27 @@ function App() {
   useEffect(() => {
     (async () => {
       try {
-        const info = await window.storage.get("unit-info", false);
-        if (info && info.value) setUnitInfo((prev) => ({ ...prev, ...JSON.parse(info.value) }));
+        const info = await readPersisted("unit-info");
+        if (info) setUnitInfo((prev) => ({ ...prev, ...JSON.parse(info) }));
       } catch (e) {
         /* no saved unit info yet */
       }
       try {
-        const ov = await window.storage.get("overview-photos", false);
-        if (ov && ov.value) setOverviewPhotos(JSON.parse(ov.value));
+        const ov = await readPersisted("overview-photos");
+        if (ov) setOverviewPhotos(JSON.parse(ov));
       } catch (e) {
         /* none yet */
       }
       try {
-        const rm = await window.storage.get("remarks", false);
-        if (rm && rm.value) {
-          const loadedRemarks = JSON.parse(rm.value);
+        const rm = await readPersisted("remarks");
+        if (rm) {
+          const loadedRemarks = JSON.parse(rm);
           const migratedRemarks = loadedRemarks.map((remark) =>
             remark.part === "General" ? { ...remark, part: "Other" } : remark
           );
           setRemarks(migratedRemarks);
           if (migratedRemarks.some((remark, index) => remark !== loadedRemarks[index])) {
-            await window.storage.set("remarks", JSON.stringify(migratedRemarks));
+            await writePersisted("remarks", JSON.stringify(migratedRemarks));
           }
         }
       } catch (e) {
@@ -1505,9 +1570,9 @@ function App() {
       const results = {};
       for (const p of PARTS) {
         try {
-          const r = await window.storage.get(`part-data:${p.id}`, false);
-          if (r && r.value) {
-            const parsed = JSON.parse(r.value);
+          const saved = await readPersisted(`part-data:${p.id}`);
+          if (saved) {
+            const parsed = JSON.parse(saved);
             if (parsed.damagePhotos || parsed.stainPhotos) {
               results[p.id] = {
                 marks: parsed.marks || [],
@@ -1532,39 +1597,26 @@ function App() {
 
   const persistPart = useCallback(async (partId, data) => {
     setSaving(true);
-    try {
-      const res = await window.storage.set(`part-data:${partId}`, JSON.stringify(data), false);
-      if (!res) showToast("Couldn't save that change", true);
-    } catch (e) {
-      showToast("Couldn't save  -  check connection", true);
-    }
+    const saved = await writePersisted(`part-data:${partId}`, JSON.stringify(data));
+    if (!saved) showToast("Couldn't save this image on this device", true);
     setSaving(false);
   }, []);
 
   const persistUnitInfo = useCallback(async (info) => {
-    try {
-      await window.storage.set("unit-info", JSON.stringify(info), false);
-    } catch (e) {
-      showToast("Couldn't save unit info", true);
-    }
+    const saved = await writePersisted("unit-info", JSON.stringify(info));
+    if (!saved) showToast("Couldn't save unit info on this device", true);
   }, []);
 
   const persistOverview = useCallback(async (photos) => {
     setSaving(true);
-    try {
-      await window.storage.set("overview-photos", JSON.stringify(photos), false);
-    } catch (e) {
-      showToast("Couldn't save  -  check connection", true);
-    }
+    const saved = await writePersisted("overview-photos", JSON.stringify(photos));
+    if (!saved) showToast("Couldn't save this image on this device", true);
     setSaving(false);
   }, []);
 
   const persistRemarks = useCallback(async (list) => {
-    try {
-      await window.storage.set("remarks", JSON.stringify(list), false);
-    } catch (e) {
-      showToast("Couldn't save remarks", true);
-    }
+    const saved = await writePersisted("remarks", JSON.stringify(list));
+    if (!saved) showToast("Couldn't save remarks on this device", true);
   }, []);
 
   function updatePartData(partId, updater) {
@@ -1822,14 +1874,14 @@ function App() {
     try {
       for (const p of PARTS) {
         try {
-          await window.storage.set(`part-data:${p.id}`, JSON.stringify({ marks: [], damagePhotos: [], stainPhotos: [] }), false);
+          await writePersisted(`part-data:${p.id}`, JSON.stringify({ marks: [], damagePhotos: [], stainPhotos: [] }));
         } catch (e) {}
       }
       try {
-        await window.storage.set("overview-photos", JSON.stringify([]), false);
+        await writePersisted("overview-photos", JSON.stringify([]));
       } catch (e) {}
       try {
-        await window.storage.set("remarks", JSON.stringify([]), false);
+        await writePersisted("remarks", JSON.stringify([]));
       } catch (e) {}
       setPartData(() => {
         const fresh = {};
