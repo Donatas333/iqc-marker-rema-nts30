@@ -733,7 +733,7 @@ async function buildWordHtml(reportData) {
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const tileSize = isChapterGrid ? 280 : isQuickscan ? 340 : 290;
+    const tileSize = isChapterGrid ? 245 : isQuickscan ? 340 : 290;
     const tableWidth = tileSize * 2 + 12;
     const rows = [];
 
