@@ -854,6 +854,18 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     { label: "REMA overview - example", image: SAMPLE_REMA_OVERVIEW, example: true },
     { label: "REMA overview - uploaded", image: remaOverviewPhoto && remaOverviewPhoto.dataUrl },
   ];
+  const inspectionCounts = PARTS.reduce(
+    (totals, part) => {
+      const data = partData[part.id] || EMPTY_PART;
+      totals.damage += data.marks.filter((mark) => mark.type === "damage").length;
+      totals.stain += data.marks.filter((mark) => mark.type === "stain").length;
+      totals.photos += data.damagePhotos.length + data.stainPhotos.length;
+      return totals;
+    },
+    { damage: 0, stain: 0, photos: overviewPhotos.length }
+  );
+  const inspectionSummaryHtml = `<div class="inspection-summary" style="display:flex;justify-content:center;gap:10px;max-width:560px;margin:0 auto 14px;break-inside:avoid;"><div style="flex:1;min-width:0;border:1px solid #fecaca;background:#fff7f7;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#dc2626;line-height:1;">${inspectionCounts.damage}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Damage marks</div></div><div style="flex:1;min-width:0;border:1px solid #bfdbfe;background:#f8fbff;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#2563eb;line-height:1;">${inspectionCounts.stain}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Stain marks</div></div><div style="flex:1;min-width:0;border:1px solid #d6d3ce;background:#fafaf9;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#0f172a;line-height:1;">${inspectionCounts.photos}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Uploaded photos</div></div></div>`;
+
   const overviewHtml = `<div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;width:560px;max-width:100%;margin:0 auto;break-inside:avoid;">${overviewSlots.map((slot) => `<div style="aspect-ratio:1/1;overflow:hidden;border:1px solid #cbd5e1;background:#f8fafc;position:relative;"><img src="${slot.image || SAMPLE_REMA_OVERVIEW}" style="width:100%;height:100%;object-fit:cover;display:block;${slot.example ? "opacity:.88;" : ""}" />${!slot.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);font-size:13px;font-weight:600;color:#64748b;text-align:center;padding:18px;">Upload ${slot.label.replace(" - uploaded", "")} photo</div>` : ""}<p style="position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 8px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:600;">${slot.label}</p></div>`).join("")}</div>`;
 
   const remarksHtml =
@@ -885,19 +897,19 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" />
 <style>
   * { box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; }
+  body { font-family: 'Inter', system-ui, sans-serif; margin:0; color:#1e293b; background:#f5f4f1; font-size:11pt; }
   .sheet { max-width:820px; margin:0 auto; background:#fff; }
   .hdr { display:flex; justify-content:space-between; align-items:center; min-height:68px; padding:12px 28px; border-bottom:3px solid #0f172a; font-size:16px; } .hdr > span:first-child { font-size:23px; line-height:1; }
   .ftr { display:flex; justify-content:flex-start; align-items:flex-end; height:84px; padding:5px 22px 2px; border-top:2px solid #0f172a; }
   .ftr img { height:64px; width:auto; max-width:66%; object-fit:contain; }
     .rbody { padding:78px 18px 20px; }
-  h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:21px; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
-  table.info td { padding:6px 10px; font-size:11px; border:1px solid #d6d3ce; }
-  table.spares { width:100%; border-collapse:collapse; font-size:8px; table-layout:fixed; }
-  table.spares th, table.spares td { border:1px solid #a8a29e; padding:3px 4px; vertical-align:middle; overflow-wrap:anywhere; }
+  h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:20pt; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
+  table.info td { padding:6px 10px; font-size:11pt; border:1px solid #d6d3ce; }
+  table.spares { width:100%; border-collapse:collapse; font-size:10pt; table-layout:fixed; }
+  table.spares th, table.spares td { border:1px solid #a8a29e; padding:3px 4px; vertical-align:middle; overflow-wrap:anywhere; font-size:10pt; }
   table.spares th { background:#f5f5f4; font-weight:700; text-align:left; }
   table.spares th:nth-child(1) { width:6%; } table.spares th:nth-child(2) { width:14%; } table.spares th:nth-child(3) { width:31%; } table.spares th:nth-child(4) { width:7%; } table.spares th:nth-child(5) { width:11%; } table.spares th:nth-child(n+6) { width:10.3%; }
-  table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }
+  table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }\n  .word-grid-title { font-size:13pt !important; }\n  .rbody p, .rbody li, .rbody td, .rbody th { font-size:11pt; }\n  table.spares th, table.spares td { font-size:10pt; }
   .cover-block { border:1px solid #a8a29e; padding:10px 12px; margin:16px 0; font-size:10px; color:#1f2937; }
   .cover-block ul { margin:7px 0 0 18px; padding:0; } .cover-block li { margin:4px 0; }
   .cover-label { margin:0; font-weight:700; } .cover-name { margin:2px 0 0 18px; font-weight:600; }
@@ -959,7 +971,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     </div>
 
     <h3 class="chapter-break">CHAPTER 1  -  GENERAL IMPRESSION</h3>
-    <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 8px;">Table 1: Overview photos</p>
+    <p style="font-size:11pt;color:#64748b;font-style:italic;margin:0 0 8px;">Table 1: Overview photos</p>
+    ${inspectionSummaryHtml}
     ${overviewHtml}
 
     <h3 class="chapter-break">CHAPTER 2  -  QUICKSCAN</h3>
