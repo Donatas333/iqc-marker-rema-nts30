@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createRoot } from "react-dom/client";
+// Production deployment refresh - no functional change.
 import footerImage from "./assets/footer-image.js";
 import hNumberExampleImage from "./assets/h-number-example-image.js";
 import remaOverviewExampleImage from "./assets/rema-overview-example-image.js";
