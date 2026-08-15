@@ -783,7 +783,7 @@ async function buildWordHtml(reportData) {
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
-  const wordFooter = `<table style="margin-left:50in;border-collapse:collapse;"><tr style="height:1pt;mso-height-rule:exactly;"><td><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="height:72pt;width:auto;display:block;" /></p></div>&nbsp;</td></tr></table>`;
+  const wordFooter = `<table style="margin-left:50in;border-collapse:collapse;"><tr style="height:1pt;mso-height-rule:exactly;"><td><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="width:5in;height:0.83in;display:block;" /></p></div>&nbsp;</td></tr></table>`;
   const html = "<!DOCTYPE html>\\n" + sourceDoc.documentElement.outerHTML;
   return html
     .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
