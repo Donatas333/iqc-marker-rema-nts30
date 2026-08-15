@@ -516,6 +516,20 @@ const SPARE_PARTS = [
   }
 ];
 
+const PART_SPARE_MATCHERS = {
+  "Blade Cover Bottom": /BLADE COVER BTM/i,
+  "Blade Cover Top": /BLADE COVER TOP W\.A\./i,
+  "Blade Cover Beam Assy": /BLADE COVER BEAM W\.A\./i,
+  "Parking Position": /BLADE CVR PARK POS\. PLATE/i,
+  "Vacuum Flange Cover": /VACUUM FLANGE COVER ASSY/i,
+  "Rema Tool Interface Assy": /TOOL INTERFACE ASSY/i,
+};
+
+function getSuggestedSparePart(partName) {
+  const matcher = PART_SPARE_MATCHERS[partName];
+  return matcher ? SPARE_PARTS.find((item) => matcher.test(item.description)) || null : null;
+}
+
 const SIZE_PCT = { S: 4.5, M: 7.5, L: 14, XL: 22, XXL: 32 };
 const SAMPLE_H_NUMBER = hNumberExampleImage;
 const SAMPLE_REMA_OVERVIEW = remaOverviewExampleImage;
@@ -652,14 +666,12 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   const remarksHtml =
     remarks.length === 0
       ? `<p style="font-size:12px;color:#94a3b8;">No remarks.</p>`
-      : `<table style="width:100%;font-size:12px;border-collapse:collapse;border:1px solid #d6d3ce;"><thead><tr style="background:#fafaf9;border-bottom:1px solid #d6d3ce;"><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:32px;">ID</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:130px;">Part</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:105px;">ISAH nr.</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:45px;">Qty</th><th style="text-align:left;padding:6px;">Remark/observation</th></tr></thead><tbody>${remarks
+      : `<table style="width:100%;font-size:12px;border-collapse:collapse;border:1px solid #d6d3ce;"><thead><tr style="background:#fafaf9;border-bottom:1px solid #d6d3ce;"><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:32px;">ID</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:130px;">Part</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;">Remark/observation</th><th style="text-align:left;padding:6px;border-right:1px solid #d6d3ce;width:105px;">ISAH nr.</th><th style="text-align:left;padding:6px;width:45px;">Qty</th></tr></thead><tbody>${remarks
           .map(
             (r, i) =>
               `<tr style="border-bottom:1px solid #e7e5e0;"><td style="padding:6px;border-right:1px solid #e7e5e0;">${
                 i + 1
-              }</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.part)}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.sparePartIsah || "-")}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.quantity || "-")}</td><td style="padding:6px;">${esc(
-                r.text
-              )}</td></tr>`
+              }</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.part)}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.text)}</td><td style="padding:6px;border-right:1px solid #e7e5e0;">${esc(r.sparePartIsah || "-")}</td><td style="padding:6px;">${esc(r.quantity || "-")}</td></tr>`
           )
           .join("")}</tbody></table>`;
 
@@ -1529,6 +1541,19 @@ function App() {
     });
   }
 
+  function selectRemarkPart(id, part) {
+    const suggested = getSuggestedSparePart(part);
+    setRemarks((prev) => {
+      const next = prev.map((r) =>
+        r.id === id
+          ? { ...r, part, sparePartIsah: suggested ? suggested.isah : "", quantity: suggested ? suggested.quantity : "" }
+          : r
+      );
+      persistRemarks(next);
+      return next;
+    });
+  }
+
   function updateRemark(id, field, value) {
     setRemarks((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, [field]: value } : r));
@@ -2100,18 +2125,18 @@ function App() {
               {remarks.map((r, i) => (
                 <div key={r.id} className="bg-white border border-stone-300 rounded-lg p-3 flex gap-2 items-start">
                   <span className="text-xs text-slate-400 w-5 pt-2 shrink-0">{i + 1}</span>
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-[minmax(130px,0.8fr)_minmax(220px,1.6fr)_76px_minmax(180px,1.5fr)] gap-2">
-                    <select value={r.part} onChange={(e) => updateRemark(r.id, "part", e.target.value)} aria-label="Part or other" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-[minmax(130px,0.75fr)_minmax(270px,2fr)_minmax(210px,1.25fr)_76px] gap-2">
+                    <select value={r.part} onChange={(e) => selectRemarkPart(r.id, e.target.value)} aria-label="Part or other" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
                       <option value="General">General</option>
                       <option value="Other">Other</option>
                       {PARTS.map((p) => (<option key={p.id} value={p.name}>{p.name}</option>))}
                     </select>
+                    <textarea value={r.text} onChange={(e) => updateRemark(r.id, "text", e.target.value)} placeholder="Remark / observation..." rows={3} aria-label="Remark or observation" className="min-w-0 text-sm border border-stone-300 rounded px-2 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300" />
                     <select value={r.sparePartIsah || ""} onChange={(e) => updateRemark(r.id, "sparePartIsah", e.target.value)} aria-label="ISAH spare part number" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
                       <option value="">ISAH nr. - no spare part</option>
                       {SPARE_PARTS.map((p) => (<option key={p.item} value={p.isah}>{p.isah} - {p.description}</option>))}
                     </select>
                     <input type="number" min="1" value={r.quantity || ""} onChange={(e) => updateRemark(r.id, "quantity", e.target.value)} placeholder="Qty" aria-label="Quantity needed" className="text-sm border border-stone-300 rounded px-2 py-1.5" />
-                    <textarea value={r.text} onChange={(e) => updateRemark(r.id, "text", e.target.value)} placeholder="Remark / observation..." rows={2} className="min-w-0 text-sm border border-stone-300 rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300" />
                   </div>
                   <button onClick={() => removeRemark(r.id)} className="text-slate-400 hover:text-red-600 pt-2 shrink-0">
                     <Trash2 size={15} />
@@ -2354,9 +2379,9 @@ function App() {
                     <tr className="bg-stone-50 border-b border-stone-300">
                       <th className="px-2 py-1.5 text-left w-8 border-r border-stone-300">ID</th>
                       <th className="px-2 py-1.5 text-left w-32 border-r border-stone-300">Part</th>
+                      <th className="px-2 py-1.5 text-left border-r border-stone-300">Remark/observation</th>
                       <th className="px-2 py-1.5 text-left w-28 border-r border-stone-300">ISAH nr.</th>
-                      <th className="px-2 py-1.5 text-left w-14 border-r border-stone-300">Qty</th>
-                      <th className="px-2 py-1.5 text-left">Remark/observation</th>
+                      <th className="px-2 py-1.5 text-left w-14">Qty</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2364,9 +2389,9 @@ function App() {
                       <tr key={r.id} className="border-b border-stone-200 avoid-break">
                         <td className="px-2 py-1.5 border-r border-stone-200">{i + 1}</td>
                         <td className="px-2 py-1.5 border-r border-stone-200">{r.part}</td>
+                        <td className="px-2 py-1.5 border-r border-stone-200">{r.text}</td>
                         <td className="px-2 py-1.5 border-r border-stone-200">{r.sparePartIsah || "-"}</td>
-                        <td className="px-2 py-1.5 border-r border-stone-200">{r.quantity || "-"}</td>
-                        <td className="px-2 py-1.5">{r.text}</td>
+                        <td className="px-2 py-1.5">{r.quantity || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
