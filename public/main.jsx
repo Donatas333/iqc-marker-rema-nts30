@@ -973,7 +973,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     '<table class="spares"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
     items.map((p) => '<tr><td>' + p.item + '</td><td>' + p.code + '</td><td>' + p.description + '</td><td>' + p.quantity + '</td><td>' + p.isah + '</td><td></td><td></td><td></td></tr>').join("") +
     '</tbody></table>';
-  const sparePartsSplitAt = 32; // 33 compact rows per A4 page
+  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "23");
   const sparePartsHtml =
     sparePartsTableHtml(SPARE_PARTS.slice(0, sparePartsSplitAt + 1)) +
     '<div style="break-before:page;padding-top:68px;">' +
