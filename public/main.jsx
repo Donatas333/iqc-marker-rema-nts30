@@ -736,6 +736,22 @@ async function buildWordHtml(reportData) {
     grid.parentNode.insertBefore(breaker, grid);
   });
 
+  // Word does not honour flexbox reliably. Convert the Chapter 1 inspection
+  // summary into a real three-column table so it matches the PDF's three blocks.
+  sourceDoc.querySelectorAll(".inspection-summary").forEach((summary) => {
+    const items = Array.from(summary.children).map((card) => {
+      const value = card.querySelector(".summary-value")?.textContent.trim() || "0";
+      const label = Array.from(card.querySelectorAll("div")).find((node) => !node.classList.contains("summary-value"))?.textContent.trim() || "";
+      const style = card.getAttribute("style") || "";
+      const border = /border:([^;]+)/.exec(style)?.[1] || "1px solid #d6d3ce";
+      const background = /background:([^;]+)/.exec(style)?.[1] || "#fafaf9";
+      const color = card.querySelector(".summary-value")?.style.color || "#0f172a";
+      return { value, label, border, background, color };
+    });
+    summary.setAttribute("style", "width:100%;margin:0 auto 14pt;page-break-inside:avoid;");
+    summary.innerHTML = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:separate;mso-cellspacing:5pt;"><tr>${items.map((item) => `<td style="width:33.33%;padding:7pt 6pt;text-align:center;border:${item.border};background:${item.background};"><strong style="font-size:16pt !important;line-height:16pt;color:${item.color};">${esc(item.value)}</strong><br/><span style="font-size:10pt !important;color:#475569;">${esc(item.label)}</span></td>`).join("")}</tr></table>`;
+  });
+
   // CSS grid is not dependable in .doc HTML. Rebuild every report grid using
   // a fixed, centred two-column table. Chapter pages therefore always hold
   // six equal square tiles (two columns x three rows).
