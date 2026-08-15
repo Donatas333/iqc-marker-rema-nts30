@@ -534,6 +534,14 @@ function getNtsModel(rtm) {
   return match ? `NTS${match[1]}` : "NTS30";
 }
 
+function getReportFileStem(unitInfo) {
+  const rtm = String(unitInfo?.rtm || getNtsModel(unitInfo?.rtm)).trim() || "NTS30";
+  const hcode = String(unitInfo?.hcode || "H-code").trim() || "H-code";
+  const now = new Date();
+  const date = String(now.getFullYear()) + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0");
+  return ("IQC-" + rtm + " - " + hcode + " - " + date).replace(/[\\/:*?"<>|]+/g, "_");
+}
+
 function buildPageBlocks(photos) {
   if (photos.length === 0) return [{ hasDiagram: true, photos: [] }];
   const blocks = [];
@@ -909,7 +917,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
-<title>IQC Report  -  ${esc(unitInfo.hcode || ("REMA " + reportModel))}</title>
+<title>${esc(getReportFileStem(unitInfo))}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" />
 <style>
   * { box-sizing: border-box; }
@@ -1902,8 +1910,7 @@ function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-" + getNtsModel(unitInfo.rtm)).replace(/[^a-z0-9-]+/gi, "_");
-      a.download = `IQC-${namePart}.html`;
+      a.download = `${getReportFileStem(unitInfo)}.html`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1952,9 +1959,8 @@ function App() {
       const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-" + getNtsModel(unitInfo.rtm)).replace(/[^a-z0-9-]+/gi, "_");
       a.href = url;
-      a.download = `IQC-${namePart}.doc`;
+      a.download = `${getReportFileStem(unitInfo)}.doc`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
