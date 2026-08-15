@@ -625,26 +625,27 @@ function photoImgHtml(photo, borderColor) {
 }
 
 
-async function buildWordSquareImage(src, fit = "cover") {
+async function buildWordFittedImage(src, fit = "cover", aspectRatio = 1) {
   const image = new Image();
   image.src = src;
   await new Promise((resolve, reject) => {
     image.onload = resolve;
     image.onerror = reject;
   });
-  const side = 720;
+  const canvasWidth = 960;
+  const canvasHeight = Math.round(canvasWidth / aspectRatio);
   const canvas = document.createElement("canvas");
-  canvas.width = side;
-  canvas.height = side;
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, side, side);
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   const scale = fit === "contain"
-    ? Math.min(side / image.naturalWidth, side / image.naturalHeight)
-    : Math.max(side / image.naturalWidth, side / image.naturalHeight);
+    ? Math.min(canvasWidth / image.naturalWidth, canvasHeight / image.naturalHeight)
+    : Math.max(canvasWidth / image.naturalWidth, canvasHeight / image.naturalHeight);
   const width = image.naturalWidth * scale;
   const height = image.naturalHeight * scale;
-  ctx.drawImage(image, (side - width) / 2, (side - height) / 2, width, height);
+  ctx.drawImage(image, (canvasWidth - width) / 2, (canvasHeight - height) / 2, width, height);
   return canvas.toDataURL("image/jpeg", 0.92);
 }
 
@@ -671,8 +672,10 @@ async function buildWordHtml(reportData) {
     const src = image.getAttribute("src");
     if (!src) return;
     const isPartDrawing = Boolean(image.dataset.partId) || PARTS.some((part) => part.img === src);
+    const chapterGrid = image.closest(".word-two-up")?.querySelector(".word-grid-title");
+    const aspectRatio = chapterGrid ? 4 / 3 : 1;
     try {
-      image.setAttribute("src", await buildWordSquareImage(src, isPartDrawing ? "contain" : "cover"));
+      image.setAttribute("src", await buildWordFittedImage(src, isPartDrawing ? "contain" : "cover", aspectRatio));
     } catch (_) {
       // Keep the original image if the browser cannot read a source.
     }
@@ -707,7 +710,7 @@ async function buildWordHtml(reportData) {
     header.innerHTML = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;"><tr><td style="width:72%;text-align:left;font-family:'Oswald',sans-serif;font-size:16pt;font-weight:600;">${esc(title)}</td><td style="width:28%;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11pt;color:#334155;">${esc(hcode)}</td></tr></table>`;
   });
 
-  function wordTileHtml(cell, side) {
+  function wordTileHtml(cell, width, height) {
     const image = cell.querySelector("img");
     const text = Array.from(cell.querySelectorAll("p"))
       .map((paragraph) => paragraph.textContent.trim())
@@ -716,11 +719,11 @@ async function buildWordHtml(reportData) {
       .join("<br/>");
     const noRecords = !image && /No records/i.test(cell.textContent);
     if (noRecords) {
-      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${side}" height="${side}" style="width:${side}px;height:${side}px;border:1px dashed #94a3b8;border-collapse:collapse;table-layout:fixed;"><tr style="height:${side}px;mso-height-rule:exactly;"><td height="${side}" valign="middle" style="height:${side}px;text-align:center;vertical-align:middle;color:#64748b;font-size:11pt;">No records</td></tr></table>`;
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${width}" height="${height}" style="width:${width}px;height:${height}px;border:1px dashed #94a3b8;border-collapse:collapse;table-layout:fixed;"><tr style="height:${height}px;mso-height-rule:exactly;"><td height="${height}" valign="middle" style="height:${height}px;text-align:center;vertical-align:middle;color:#64748b;font-size:11pt;">No records</td></tr></table>`;
     }
-    if (!image) return `<div style="width:${side}px;height:${side}px;"></div>`;
+    if (!image) return `<div style="width:${width}px;height:${height}px;"></div>`;
     const src = image.getAttribute("src") || "";
-    return `<div style="width:${side}px;text-align:center;"><img src="${src}" width="${side}" height="${side}" style="display:block;width:${side}px;height:${side}px;border:1px solid #d6d3ce;" />${text ? `<p style="margin:3pt 0 5pt;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</div>`;
+    return `<div style="width:${width}px;text-align:center;"><img src="${src}" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;border:1px solid #d6d3ce;" />${text ? `<p style="margin:3pt 0 5pt;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</div>`;
   }
 
   // Quickscan is intentionally its own 2 x 2 layout. Insert a Word-native
@@ -742,13 +745,16 @@ async function buildWordHtml(reportData) {
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const tileSize = isChapterGrid ? 245 : isQuickscan ? 340 : 290;
-    const tableWidth = tileSize * 2 + 12;
+    const tileHeight = isChapterGrid ? 245 : isQuickscan ? 340 : 290;
+    // Chapter 3/4 use 4:3 tiles to use the horizontal page space while
+    // preserving the known-safe height for all six images.
+    const tileWidth = isChapterGrid ? Math.round(tileHeight * 4 / 3) : tileHeight;
+    const tableWidth = tileWidth * 2 + 12;
     const rows = [];
 
     for (let index = 0; index < cells.length; index += 2) {
       const pair = [cells[index], cells[index + 1]];
-      rows.push(`<tr style="page-break-inside:avoid;">${pair.map((cell) => `<td style="width:${tileSize + 6}px;vertical-align:top;padding:3px;page-break-inside:avoid;">${cell ? wordTileHtml(cell, tileSize) : ""}</td>`).join("")}</tr>`);
+      rows.push(`<tr style="page-break-inside:avoid;">${pair.map((cell) => `<td style="width:${tileWidth + 6}px;vertical-align:top;padding:3px;page-break-inside:avoid;">${cell ? wordTileHtml(cell, tileWidth, tileHeight) : ""}</td>`).join("")}</tr>`);
     }
     grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="width:${tableWidth}px;border-collapse:collapse;table-layout:fixed;margin:0 auto;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>`;
   });
