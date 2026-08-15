@@ -1161,7 +1161,8 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef(null);
-  const boxSize = 360;
+  const boxWidth = 360;
+  const boxHeight = 270;
 
   useEffect(() => {
     const img = new Image();
@@ -1177,13 +1178,18 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
     );
   }
 
-  const baseScale = Math.max(boxSize / image.naturalWidth, boxSize / image.naturalHeight);
+  const baseScale = Math.max(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
   const scale = baseScale * zoom;
   const width = image.naturalWidth * scale;
   const height = image.naturalHeight * scale;
+  const clampAxis = (value, contentSize, boxSize) => {
+    if (contentSize <= boxSize) return 0;
+    const limit = (contentSize - boxSize) / 2;
+    return Math.max(-limit, Math.min(limit, value));
+  };
   const clampOffset = (next) => ({
-    x: Math.max(-(width - boxSize) / 2, Math.min((width - boxSize) / 2, next.x)),
-    y: Math.max(-(height - boxSize) / 2, Math.min((height - boxSize) / 2, next.y)),
+    x: clampAxis(next.x, width, boxWidth),
+    y: clampAxis(next.y, height, boxHeight),
   });
 
   function onPointerDown(event) {
@@ -1203,20 +1209,27 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
     const nextWidth = image.naturalWidth * nextScale;
     const nextHeight = image.naturalHeight * nextScale;
     setOffset((current) => ({
-      x: Math.max(-(nextWidth - boxSize) / 2, Math.min((nextWidth - boxSize) / 2, current.x)),
-      y: Math.max(-(nextHeight - boxSize) / 2, Math.min((nextHeight - boxSize) / 2, current.y)),
+      x: clampAxis(current.x, nextWidth, boxWidth),
+      y: clampAxis(current.y, nextHeight, boxHeight),
     }));
   }
   function save() {
-    const outputSize = 900;
+    const outputWidth = 1200;
+    const outputHeight = 900;
     const canvas = document.createElement("canvas");
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
     const ctx = canvas.getContext("2d");
-    const sourceX = -((boxSize - width) / 2 + offset.x) / scale;
-    const sourceY = -((boxSize - height) / 2 + offset.y) / scale;
-    const sourceLength = boxSize / scale;
-    ctx.drawImage(image, sourceX, sourceY, sourceLength, sourceLength, 0, 0, outputSize, outputSize);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputWidth, outputHeight);
+    const outputScale = outputWidth / boxWidth;
+    ctx.drawImage(
+      image,
+      ((boxWidth - width) / 2 + offset.x) * outputScale,
+      ((boxHeight - height) / 2 + offset.y) * outputScale,
+      width * outputScale,
+      height * outputScale
+    );
     onSave(canvas.toDataURL("image/jpeg", 0.86));
   }
 
@@ -1224,23 +1237,30 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
     <div className="fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
         <div className="px-4 py-3 border-b border-stone-200">
-          <h2 className="text-base font-semibold text-slate-900">Crop photo to square</h2>
-          <p className="text-xs text-slate-500 mt-0.5 truncate">{fileName}  /  drag to position, then zoom if needed</p>
+          <h2 className="text-base font-semibold text-slate-900">Crop photo to 4:3</h2>
+          <p className="text-xs text-slate-500 mt-0.5 truncate">{fileName}  /  drag to position, then use the slider to zoom out or in</p>
         </div>
         <div className="p-4 flex justify-center bg-stone-100">
           <div
-            className="relative w-[min(360px,calc(100vw-56px))] aspect-square overflow-hidden bg-slate-200 touch-none cursor-move"
+            className="relative w-[min(360px,calc(100vw-56px))] aspect-[4/3] overflow-hidden bg-slate-200 touch-none cursor-move"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           >
-            <img src={source} alt="Crop preview" draggable="false" className="absolute max-w-none select-none pointer-events-none" style={{ width, height, left: (boxSize - width) / 2 + offset.x, top: (boxSize - height) / 2 + offset.y }} />
+            <img src={source} alt="Crop preview" draggable="false" className="absolute max-w-none select-none pointer-events-none" style={{ width, height, left: (boxWidth - width) / 2 + offset.x, top: (boxHeight - height) / 2 + offset.y }} />
           </div>
         </div>
         <div className="px-4 pb-4">
-          <label className="block text-xs font-medium text-slate-600 mb-1.5">Zoom</label>
-          <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={(e) => changeZoom(Number(e.target.value))} className="w-full accent-amber-500" />
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs font-medium text-slate-600">Zoom</label>
+            <span className="text-xs text-slate-400">{Math.round(zoom * 100)}%</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span>Out</span>
+            <input type="range" min="0.35" max="5" step="0.01" value={zoom} onChange={(e) => changeZoom(Number(e.target.value))} className="flex-1 accent-amber-500" />
+            <span>In</span>
+          </div>
           <div className="mt-3 border-t border-stone-200 pt-3">
             <p className="text-xs font-medium text-slate-600 mb-1">Original image - reference</p>
             <div className="h-24 rounded border border-stone-200 bg-stone-50 flex items-center justify-center overflow-hidden">
@@ -1249,7 +1269,7 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button type="button" onClick={onCancel} className="px-3 py-2 text-sm rounded-md border border-stone-300 text-slate-600 hover:bg-stone-50">Cancel</button>
-            <button type="button" onClick={save} className="px-3 py-2 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800">Use square photo</button>
+            <button type="button" onClick={save} className="px-3 py-2 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800">Use 4:3 photo</button>
           </div>
         </div>
       </div>
