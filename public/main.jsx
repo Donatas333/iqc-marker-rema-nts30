@@ -2487,13 +2487,6 @@ function App() {
               </div>
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 <button
-                  onClick={copySummary}
-                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md border border-stone-300 text-slate-600 hover:bg-stone-100"
-                >
-                  <Copy size={14} />
-                  Copy counts
-                </button>
-                <button
                   onClick={exportPdf}
                   className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md border border-stone-300 text-slate-600 hover:bg-stone-100"
                 >
