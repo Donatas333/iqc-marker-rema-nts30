@@ -516,20 +516,6 @@ const SPARE_PARTS = [
   }
 ];
 
-const PART_SPARE_MATCHERS = {
-  "Blade Cover Bottom": /BLADE COVER BTM/i,
-  "Blade Cover Top": /BLADE COVER TOP W\.A\./i,
-  "Blade Cover Beam Assy": /BLADE COVER BEAM W\.A\./i,
-  "Parking Position": /BLADE CVR PARK POS\. PLATE/i,
-  "Vacuum Flange Cover": /VACUUM FLANGE COVER ASSY/i,
-  "Rema Tool Interface Assy": /TOOL INTERFACE ASSY/i,
-};
-
-function getSuggestedSparePart(partName) {
-  const matcher = PART_SPARE_MATCHERS[partName];
-  return matcher ? SPARE_PARTS.find((item) => matcher.test(item.description)) || null : null;
-}
-
 const SIZE_PCT = { S: 4.5, M: 7.5, L: 14, XL: 22, XXL: 32 };
 const SAMPLE_H_NUMBER = hNumberExampleImage;
 const SAMPLE_REMA_OVERVIEW = remaOverviewExampleImage;
@@ -1541,19 +1527,6 @@ function App() {
     });
   }
 
-  function selectRemarkPart(id, part) {
-    const suggested = getSuggestedSparePart(part);
-    setRemarks((prev) => {
-      const next = prev.map((r) =>
-        r.id === id
-          ? { ...r, part, sparePartIsah: suggested ? suggested.isah : "", quantity: suggested ? suggested.quantity : "" }
-          : r
-      );
-      persistRemarks(next);
-      return next;
-    });
-  }
-
   function updateRemark(id, field, value) {
     setRemarks((prev) => {
       const next = prev.map((r) => (r.id === id ? { ...r, [field]: value } : r));
@@ -2123,22 +2096,22 @@ function App() {
 
             <div className="space-y-2.5">
               {remarks.map((r, i) => (
-                <div key={r.id} className="bg-white border border-stone-300 rounded-lg p-3 flex gap-2 items-start">
-                  <span className="text-xs text-slate-400 w-5 pt-2 shrink-0">{i + 1}</span>
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-[minmax(130px,0.75fr)_minmax(270px,2fr)_minmax(210px,1.25fr)_76px] gap-2">
-                    <select value={r.part} onChange={(e) => selectRemarkPart(r.id, e.target.value)} aria-label="Part or other" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
+                <div key={r.id} className="bg-white border border-stone-300 rounded-lg p-2.5 flex gap-2 items-center">
+                  <span className="text-xs text-slate-400 w-5 shrink-0">{i + 1}</span>
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-[minmax(150px,0.9fr)_minmax(250px,1.75fr)_minmax(220px,1.3fr)_68px] gap-2 sm:items-center">
+                    <select value={r.part} onChange={(e) => updateRemark(r.id, "part", e.target.value)} aria-label="Part or other" className="h-[62px] text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
                       <option value="General">General</option>
                       <option value="Other">Other</option>
                       {PARTS.map((p) => (<option key={p.id} value={p.name}>{p.name}</option>))}
                     </select>
-                    <textarea value={r.text} onChange={(e) => updateRemark(r.id, "text", e.target.value)} placeholder="Remark / observation..." rows={3} aria-label="Remark or observation" className="min-w-0 text-sm border border-stone-300 rounded px-2 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300" />
-                    <select value={r.sparePartIsah || ""} onChange={(e) => updateRemark(r.id, "sparePartIsah", e.target.value)} aria-label="ISAH spare part number" className="text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
+                    <textarea value={r.text} onChange={(e) => updateRemark(r.id, "text", e.target.value)} placeholder="Remark / observation..." rows={2} aria-label="Remark or observation" className="h-[62px] min-w-0 text-sm border border-stone-300 rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300" />
+                    <select value={r.sparePartIsah || ""} onChange={(e) => updateRemark(r.id, "sparePartIsah", e.target.value)} aria-label="ISAH spare part number" className="h-[62px] text-sm border border-stone-300 rounded px-2 py-1.5 bg-white">
                       <option value="">ISAH nr. - no spare part</option>
                       {SPARE_PARTS.map((p) => (<option key={p.item} value={p.isah}>{p.isah} - {p.description}</option>))}
                     </select>
-                    <input type="number" min="1" value={r.quantity || ""} onChange={(e) => updateRemark(r.id, "quantity", e.target.value)} placeholder="Qty" aria-label="Quantity needed" className="text-sm border border-stone-300 rounded px-2 py-1.5" />
+                    <input type="number" min="1" value={r.quantity || ""} onChange={(e) => updateRemark(r.id, "quantity", e.target.value)} placeholder="Qty" aria-label="Quantity needed" className="h-[62px] text-sm border border-stone-300 rounded px-2 py-1.5" />
                   </div>
-                  <button onClick={() => removeRemark(r.id)} className="text-slate-400 hover:text-red-600 pt-2 shrink-0">
+                  <button onClick={() => removeRemark(r.id)} className="text-slate-400 hover:text-red-600 shrink-0">
                     <Trash2 size={15} />
                   </button>
                 </div>
