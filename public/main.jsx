@@ -698,6 +698,15 @@ async function buildWordHtml(reportData) {
     if (section) section.setAttribute("style", (section.getAttribute("style") || "") + ";page-break-before:always;");
   });
 
+  // Flex headers are not reliable in Word HTML. Replace them with a two-cell
+  // table so the H-code is always aligned on the right edge.
+  sourceDoc.querySelectorAll(".hdr").forEach((header) => {
+    const spans = Array.from(header.querySelectorAll("span"));
+    const title = spans[0] ? spans[0].textContent : "";
+    const hcode = spans[1] ? spans[1].textContent : "";
+    header.innerHTML = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;"><tr><td style="width:72%;text-align:left;font-family:'Oswald',sans-serif;font-size:16pt;font-weight:600;">${esc(title)}</td><td style="width:28%;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11pt;color:#334155;">${esc(hcode)}</td></tr></table>`;
+  });
+
   function wordTileHtml(cell, side) {
     const image = cell.querySelector("img");
     const text = Array.from(cell.querySelectorAll("p"))
@@ -707,7 +716,7 @@ async function buildWordHtml(reportData) {
       .join("<br/>");
     const noRecords = !image && /No records/i.test(cell.textContent);
     if (noRecords) {
-      return `<div style="width:${side}px;height:${side}px;border:1px dashed #94a3b8;text-align:center;vertical-align:middle;line-height:${side}px;color:#64748b;font-size:11pt;">No records</div>`;
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${side}" height="${side}" style="width:${side}px;height:${side}px;border:1px dashed #94a3b8;border-collapse:collapse;table-layout:fixed;"><tr style="height:${side}px;mso-height-rule:exactly;"><td height="${side}" valign="middle" style="height:${side}px;text-align:center;vertical-align:middle;color:#64748b;font-size:11pt;">No records</td></tr></table>`;
     }
     if (!image) return `<div style="width:${side}px;height:${side}px;"></div>`;
     const src = image.getAttribute("src") || "";
@@ -758,7 +767,11 @@ async function buildWordHtml(reportData) {
     .word-two-up { width:100% !important; page-break-inside:avoid !important; }
     .word-two-up table { page-break-inside:avoid !important; }
     .word-two-up tr, .word-two-up td { page-break-inside:avoid !important; vertical-align:top !important; }
-    h3 { font-size:16pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
+    body, p, td, th, li, div, span { font-size:11pt !important; }
+    h3 { font-size:20pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
+    .word-grid-title { font-size:13pt !important; line-height:15pt !important; }
+    .hdr > table td:first-child { font-size:16pt !important; }
+    .hdr > table td:last-child { font-size:11pt !important; text-align:right !important; }
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
