@@ -1092,9 +1092,9 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
 
     <section style="break-before:page;padding-top:68px;">
       <h3>CHAPTER 6  -  SPARE PARTS LIST</h3>
-      <p style="font-size:12px;font-weight:600;margin:0 0 4px;">6. Spare parts list (missing/damaged spare parts)</p>
-      <p style="font-size:11px;color:#64748b;font-style:italic;margin:0 0 4px;">Table 6: Spare parts list</p>
-      <p style="font-size:10px;color:#475569;margin:0 0 9px;">Indicate exactly which items are missing, damaged or replaced (use checklist to find item numbers).</p>
+      <p style="font-size:13pt;font-weight:600;margin:0 0 4px;">6. Spare parts list (missing/damaged spare parts)</p>
+      <p style="font-size:11pt;color:#64748b;font-style:italic;margin:0 0 4px;">Table 6: Spare parts list</p>
+      <p style="font-size:11pt;color:#475569;margin:0 0 9px;">Indicate exactly which items are missing, damaged or replaced (use checklist to find item numbers).</p>
       ${sparePartsHtml}
     </section>
   </div>
