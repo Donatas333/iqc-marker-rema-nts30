@@ -628,32 +628,64 @@ function photoImgHtml(photo, borderColor) {
 async function buildWordHtml(reportData) {
   const sourceHtml = buildReportHtml(reportData).replaceAll("break-before:page;", "break-before:page;page-break-before:always;");
   const sourceDoc = new DOMParser().parseFromString(sourceHtml, "text/html");
+
+  // Word does not reliably keep absolutely positioned SVG overlays in the
+  // correct place. Draw each part and its marks onto one PNG instead.
   await Promise.all(PARTS.map(async (part) => {
     const marks = (reportData.partData[part.id] || EMPTY_PART).marks || [];
     if (marks.length === 0) return;
     const markedImage = await buildWordMarkedPartImage(part, marks);
-    sourceDoc.querySelectorAll(".word-quickscan img").forEach((image) => {
-      if (image.getAttribute("src") === part.img) image.setAttribute("src", markedImage);
+    sourceDoc.querySelectorAll(`.word-quickscan img[data-part-id="${part.id}"]`).forEach((image) => {
+      image.setAttribute("src", markedImage);
+      const card = image.closest("div[style*='border:1px solid']");
+      if (card) card.querySelectorAll("svg").forEach((overlay) => overlay.remove());
     });
   }));
+
+  // Explicit inline breaks are more reliable in Word than modern CSS break
+  // properties. Each report chapter therefore begins at the top of a page.
+  sourceDoc.querySelectorAll("h3").forEach((heading) => {
+    const currentStyle = heading.getAttribute("style") || "";
+    heading.setAttribute("style", currentStyle + ";page-break-before:always;mso-break-type:section-break;");
+  });
+
+  // Convert CSS grids into ordinary two-column tables. This is Word's most
+  // dependable layout primitive and keeps every 2 x 3/2 x 2 panel together.
   sourceDoc.querySelectorAll(".word-two-up").forEach((grid) => {
     const children = Array.from(grid.children);
     const heading = children.find((child) => child.classList && child.classList.contains("word-grid-title"));
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
-    const imageHeight = isChapterGrid ? "170pt" : "220pt";
-    const imageWidth = "250pt";
-    cells.forEach((cell) => cell.querySelectorAll("img").forEach((image) => {
-      image.setAttribute("width", imageWidth.replace("pt", ""));
-      image.setAttribute("height", imageHeight.replace("pt", ""));
-      image.setAttribute("style", (image.getAttribute("style") || "") + `;width:${imageWidth} !important;height:${imageHeight} !important;max-width:100% !important;object-fit:cover;`);
-    }));
+    const isQuickscan = grid.classList.contains("word-quickscan");
+    const imageWidth = isChapterGrid ? 230 : isQuickscan ? 220 : 205;
+    const imageHeight = isChapterGrid ? 138 : isQuickscan ? 190 : 205;
+
+    cells.forEach((cell) => {
+      cell.style.aspectRatio = "";
+      cell.style.height = "";
+      cell.style.minHeight = "0";
+      cell.style.pageBreakInside = "avoid";
+      cell.querySelectorAll("img").forEach((image) => {
+        image.setAttribute("width", String(imageWidth));
+        image.setAttribute("height", String(imageHeight));
+        image.setAttribute(
+          "style",
+          (image.getAttribute("style") || "") +
+            `;width:${imageWidth}px !important;height:${imageHeight}px !important;max-width:100% !important;object-fit:contain !important;display:block;margin:0 auto;`
+        );
+      });
+    });
+
     const rows = [];
     for (let index = 0; index < cells.length; index += 2) {
-      rows.push("<tr>" + [cells[index], cells[index + 1]].map((cell) => `<td style="width:50%;vertical-align:top;padding:3pt;">${cell ? cell.outerHTML : ""}</td>`).join("") + "</tr>");
+      const rowCells = [cells[index], cells[index + 1]].map((cell) =>
+        `<td style="width:50%;vertical-align:top;padding:2pt;page-break-inside:avoid;">${cell ? cell.outerHTML : ""}</td>`
+      );
+      rows.push(`<tr style="page-break-inside:avoid;">${rowCells.join("")}</tr>`);
     }
-    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:avoid;">${rows.join("")}</table>`;
+    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>`;
   });
+
   const wordOnlyStyles = `<!--[if gte mso 9]>
   <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
   <style>
@@ -665,9 +697,9 @@ async function buildWordHtml(reportData) {
     .hdr > span:first-child { font-size:16pt !important; }
     .rbody { padding:20pt 0 8pt !important; }
     .ftr { display:none !important; }
-    .word-two-up { width:100% !important; }
-    .word-two-up table { width:100% !important; table-layout:fixed !important; page-break-inside:avoid !important; }
-    .word-two-up td { vertical-align:top !important; }
+    .word-two-up { width:100% !important; page-break-inside:avoid !important; }
+    .word-two-up table { width:100% !important; table-layout:fixed !important; page-break-inside:avoid !important; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    .word-two-up tr, .word-two-up td { page-break-inside:avoid !important; vertical-align:top !important; }
     h3 { font-size:16pt !important; margin:16pt 0 7pt !important; page-break-after:avoid !important; }
     table { width:100% !important; }
     img { -ms-interpolation-mode:bicubic; }
@@ -687,7 +719,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   function quickscanCardHtml(p) {
     const d = partData[p.id] || EMPTY_PART;
     const marks = d.marks.map(markDivHtml).join("");
-    return `<div style="border:1px solid #d6d3ce;border-radius:6px;padding:6px;break-inside:avoid;"><div style="position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;"><img src="${p.img}" style="width:100%;height:100%;object-fit:contain;border-radius:4px;display:block;" />${marks}</div><p style="font-size:11px;color:#334155;margin:4px 0 0;text-align:center;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(p.code)}</span> ${esc(p.name)}</p></div>`;
+    return `<div style="border:1px solid #d6d3ce;border-radius:6px;padding:6px;break-inside:avoid;"><div style="position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;"><img data-part-id="${p.id}" src="${p.img}" style="width:100%;height:100%;object-fit:contain;border-radius:4px;display:block;" />${marks}</div><p style="font-size:11px;color:#334155;margin:4px 0 0;text-align:center;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(p.code)}</span> ${esc(p.name)}</p></div>`;
   }
   const quickscanHtml = PARTS.reduce((pages, part, index) => {
     if (index % 4 === 0) pages.push([]);
