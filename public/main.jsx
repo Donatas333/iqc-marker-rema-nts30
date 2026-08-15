@@ -998,7 +998,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   table.spares th, table.spares td { border:1px solid #a8a29e; padding:1px 2px; vertical-align:middle; overflow-wrap:anywhere; font-size:10px; line-height:1.1; }
   table.spares th { background:#f5f5f4; font-weight:700; text-align:left; }
   table.spares th:nth-child(1) { width:6%; } table.spares th:nth-child(2) { width:14%; } table.spares th:nth-child(3) { width:31%; } table.spares th:nth-child(4) { width:7%; } table.spares th:nth-child(5) { width:11%; } table.spares th:nth-child(n+6) { width:10.3%; }
-  table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }\n  .word-grid-title { font-size:13pt !important; }\n  .rbody p, .rbody li, .rbody td, .rbody th { font-size:11pt; }\n  table.spares th, table.spares td { font-size:10pt; }
+  table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }\n  .word-grid-title { font-size:13pt !important; }\n  .rbody p, .rbody li, .rbody td, .rbody th { font-size:11pt; }\n  /* PDF spare-parts table: 66 rows in two fixed A4 pages. */\n  table.spares, table.spares th, table.spares td { font-size:8px !important; line-height:1.05 !important; }\n  table.spares th, table.spares td { padding:0.5px 1px !important; }
   .cover-block { border:1px solid #a8a29e; padding:10px 12px; margin:16px 0; font-size:10px; color:#1f2937; }
   .cover-block ul { margin:7px 0 0 18px; padding:0; } .cover-block li { margin:4px 0; }
   .cover-label { margin:0; font-weight:700; } .cover-name { margin:2px 0 0 18px; font-weight:600; }
@@ -1995,14 +1995,18 @@ function App() {
 
   function exportPdf() {
     try {
+      const fileStem = getReportFileStem(unitInfo);
+      const originalTitle = document.title;
+      document.title = fileStem;
       const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
       const frame = document.createElement("iframe");
-      frame.setAttribute("title", getReportFileStem(unitInfo));
+      frame.setAttribute("title", fileStem);
       frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
+      const restoreTitle = () => { document.title = originalTitle; };
       frame.onload = () => {
         try {
-          if (frame.contentDocument) frame.contentDocument.title = getReportFileStem(unitInfo);
+          if (frame.contentDocument) frame.contentDocument.title = fileStem;
           setTimeout(() => {
             frame.contentWindow.focus();
             frame.contentWindow.print();
@@ -2011,6 +2015,7 @@ function App() {
           showToast("Couldn't prepare the PDF", true);
         }
         setTimeout(() => {
+          restoreTitle();
           URL.revokeObjectURL(url);
           frame.remove();
         }, 60000);
