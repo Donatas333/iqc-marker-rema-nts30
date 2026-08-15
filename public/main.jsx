@@ -1287,7 +1287,7 @@ function Marker({ mark, selected, onPointerDown }) {
   );
 }
 
-function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onEdit, onOpenLightbox, hint, exampleImage }) {
+function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onEdit, onOpenLightbox, hint, exampleImage, previewAspect = "1 / 1" }) {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const a = ACCENTS[accent] || ACCENTS.amber;
@@ -1327,7 +1327,7 @@ function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onEdit
           return (
             <div key={photo.id} className="relative bg-white border border-stone-300 rounded-lg overflow-hidden shrink-0" style={{ width: w }}>
               <button type="button" onClick={() => onOpenLightbox(photo)} className="block w-full bg-stone-100">
-                <img src={photo.dataUrl} alt="" className="w-full h-auto object-contain block" />
+                <img src={photo.dataUrl} alt="" className="w-full object-cover block" style={{ aspectRatio: previewAspect }} />
               </button>
               <button
                 type="button"
@@ -1354,7 +1354,7 @@ function PhotoBucket({ title, accent, photos, onAdd, onRemove, onCaption, onEdit
         <button
           type="button"
           onClick={() => inputRef.current && inputRef.current.click()}
-          style={{ width: 140, height: 140 }}
+          style={{ width: 140, aspectRatio: previewAspect }}
           className={`rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors shrink-0 ${
             dragOver ? a.active : "border-stone-300 hover:border-stone-400 bg-stone-50"
           }`}
@@ -2270,6 +2270,7 @@ function App() {
                     onCaption={(id, c) => updateCaptionInBucket("damagePhotos", id, c)}
                     onEdit={(photo) => editPartPhoto("damagePhotos", photo)}
                     onOpenLightbox={setLightbox}
+                    previewAspect="4 / 3"
                   />
                 </div>
                 <div className="bg-white border border-stone-300 rounded-lg p-3">
@@ -2282,6 +2283,7 @@ function App() {
                     onCaption={(id, c) => updateCaptionInBucket("stainPhotos", id, c)}
                     onEdit={(photo) => editPartPhoto("stainPhotos", photo)}
                     onOpenLightbox={setLightbox}
+                    previewAspect="4 / 3"
                   />
                 </div>
               </div>
