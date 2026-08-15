@@ -2023,6 +2023,31 @@ function App() {
               <Printer size={13} />
               Export
             </button>
+            {confirmReset ? (
+              <>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md bg-red-600 text-white font-medium hover:bg-red-500"
+                >
+                  <RotateCcw size={13} />
+                  Confirm reset
+                </button>
+                <button
+                  onClick={() => setConfirmReset(false)}
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setConfirmReset(true)}
+                className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-slate-600 text-slate-200 hover:bg-slate-800"
+              >
+                <RotateCcw size={13} />
+                Reset all
+              </button>
+            )}
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               {saving ? (
                 <>
@@ -2674,30 +2699,6 @@ function App() {
         </div>
       )}
 
-      {view !== "report" && (
-        <div className="px-3 sm:px-5 pb-5 app-chrome">
-          <div className="max-w-3xl mx-auto flex justify-end">
-            {confirmReset ? (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-slate-500">Clear all marks, photos and remarks for the whole report?</span>
-                <button onClick={handleReset} className="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700">
-                  Yes, clear all
-                </button>
-                <button
-                  onClick={() => setConfirmReset(false)}
-                  className="px-3 py-1.5 rounded-md border border-stone-300 text-slate-600 hover:bg-stone-100"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button onClick={() => setConfirmReset(true)} className="text-xs text-slate-400 hover:text-red-600">
-                Reset all inspection data
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
