@@ -769,9 +769,9 @@ async function buildWordHtml(reportData) {
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const tileHeight = isChapterGrid ? 245 : isQuickscan ? 340 : 290;
+    const tileHeight = isChapterGrid ? 220 : isQuickscan ? 340 : 290;
     // Chapter 3/4 use 4:3 tiles to use the horizontal page space while
-    // preserving the known-safe height for all six images.
+    // using a safe height that fits all six images even when a chapter title wraps.
     const tileWidth = isChapterGrid ? Math.round(tileHeight * 4 / 3) : tileHeight;
     const tableWidth = tileWidth * 2 + 12;
     const rows = [];
@@ -905,10 +905,10 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           .join("")}</tbody></table>`;
 
   const sparePartsTableHtml = (items) =>
-    '<table class="spares" style="break-inside:avoid;page-break-inside:avoid;"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
+    '<table class="spares"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
     items.map((p) => '<tr><td>' + p.item + '</td><td>' + p.code + '</td><td>' + p.description + '</td><td>' + p.quantity + '</td><td>' + p.isah + '</td><td></td><td></td><td></td></tr>').join("") +
     '</tbody></table>';
-  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "21");
+  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "27");
   const sparePartsHtml =
     sparePartsTableHtml(SPARE_PARTS.slice(0, sparePartsSplitAt + 1)) +
     '<div style="break-before:page;padding-top:68px;">' +
@@ -1948,6 +1948,7 @@ function App() {
       const frame = document.createElement("iframe");
       frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
       frame.onload = () => {
+        try { frame.contentDocument.title = getReportFileStem(unitInfo); } catch (_) {}
         frame.contentWindow.focus();
         frame.contentWindow.print();
         setTimeout(() => {
