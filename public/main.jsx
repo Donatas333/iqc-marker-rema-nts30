@@ -733,7 +733,7 @@ async function buildWordHtml(reportData) {
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const tileSize = isChapterGrid ? 230 : isQuickscan ? 300 : 245;
+    const tileSize = isChapterGrid ? 280 : isQuickscan ? 340 : 290;
     const tableWidth = tileSize * 2 + 12;
     const rows = [];
 
@@ -741,14 +741,13 @@ async function buildWordHtml(reportData) {
       const pair = [cells[index], cells[index + 1]];
       rows.push(`<tr style="page-break-inside:avoid;">${pair.map((cell) => `<td style="width:${tileSize + 6}px;vertical-align:top;padding:3px;page-break-inside:avoid;">${cell ? wordTileHtml(cell, tileSize) : ""}</td>`).join("")}</tr>`);
     }
-    const pageBrand = `<div class="word-page-brand" style="width:100%;margin:14pt 0 0;border-top:1.5pt solid #0f172a;padding-top:4pt;text-align:left;page-break-inside:avoid;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;display:block;" /></div>`;
-    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="width:${tableWidth}px;border-collapse:collapse;table-layout:fixed;margin:0 auto;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>${pageBrand}`;
+    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="width:${tableWidth}px;border-collapse:collapse;table-layout:fixed;margin:0 auto;page-break-inside:avoid;mso-table-lspace:0pt;mso-table-rspace:0pt;">${rows.join("")}</table>`;
   });
 
   const wordOnlyStyles = `<!--[if gte mso 9]>
   <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
   <style>
-    @page WordSection1 { size:595.3pt 841.9pt; margin:22pt 26pt 26pt 26pt; }
+    @page WordSection1 { size:595.3pt 841.9pt; margin:22pt 26pt 70pt 26pt; mso-footer:f1; mso-footer-margin:12pt; }
     div.WordSection1 { page:WordSection1; }
     body { background:#fff !important; }
     .sheet { width:100% !important; max-width:none !important; margin:0 !important; }
@@ -763,12 +762,12 @@ async function buildWordHtml(reportData) {
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
-  const wordFooter = "";
+  const wordFooter = `<table style="margin-left:50in;border-collapse:collapse;"><tr style="height:1pt;mso-height-rule:exactly;"><td><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="height:50pt;width:auto;display:block;" /></p></div>&nbsp;</td></tr></table>`;
   const html = "<!DOCTYPE html>\\n" + sourceDoc.documentElement.outerHTML;
   return html
     .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
     .replace("</head>", wordOnlyStyles + "</head>")
-    .replace("<body>", "<body>" + wordFooter + '<div class="WordSection1">')
+    .replace("<body>", '<body><div class="WordSection1">' + wordFooter)
     .replace("</body>", "</div></body>");
 }
 
