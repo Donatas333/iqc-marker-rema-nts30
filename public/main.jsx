@@ -762,7 +762,7 @@ async function buildWordHtml(reportData) {
   const wordOnlyStyles = `<!--[if gte mso 9]>
   <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
   <style>
-    @page WordSection1 { size:595.3pt 841.9pt; margin:22pt 26pt 70pt 26pt; mso-footer:f1; mso-footer-margin:12pt; }
+    @page WordSection1 { size:595.3pt 841.9pt; margin:22pt 26pt 70pt 26pt; mso-header-margin:14.4pt; mso-footer:f1; mso-footer-margin:28.8pt; }
     div.WordSection1 { page:WordSection1; }
     body { background:#fff !important; }
     .sheet { width:100% !important; max-width:none !important; margin:0 !important; }
@@ -783,7 +783,7 @@ async function buildWordHtml(reportData) {
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
-  const wordFooter = `<table style="margin-left:50in;border-collapse:collapse;"><tr style="height:1pt;mso-height-rule:exactly;"><td><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="height:62pt;width:auto;display:block;" /></p></div>&nbsp;</td></tr></table>`;
+  const wordFooter = `<table style="margin-left:50in;border-collapse:collapse;"><tr style="height:1pt;mso-height-rule:exactly;"><td><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="height:66pt;width:auto;display:block;" /></p></div>&nbsp;</td></tr></table>`;
   const html = "<!DOCTYPE html>\\n" + sourceDoc.documentElement.outerHTML;
   return html
     .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
