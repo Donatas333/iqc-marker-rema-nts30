@@ -908,7 +908,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     '<table class="spares"><thead><tr><th>Item in CL</th><th>12NC</th><th>Description</th><th>Quantity</th><th>ISAH nr.</th><th>Missing</th><th>Damaged</th><th>Replaced</th></tr></thead><tbody>' +
     items.map((p) => '<tr><td>' + p.item + '</td><td>' + p.code + '</td><td>' + p.description + '</td><td>' + p.quantity + '</td><td>' + p.isah + '</td><td></td><td></td><td></td></tr>').join("") +
     '</tbody></table>';
-  const sparePartsSplitAt = SPARE_PARTS.findIndex((p) => p.item === "27");
+  const sparePartsSplitAt = 32; // 33 compact rows per A4 page
   const sparePartsHtml =
     sparePartsTableHtml(SPARE_PARTS.slice(0, sparePartsSplitAt + 1)) +
     '<div style="break-before:page;padding-top:68px;">' +
@@ -929,8 +929,8 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     .rbody { padding:78px 18px 20px; }
   h3 { font-family:'Oswald',sans-serif; font-weight:700; font-size:20pt; line-height:1.15; color:#0f172a; margin:26px 0 9px; break-after:avoid-page; }
   table.info td { padding:6px 10px; font-size:11pt; border:1px solid #d6d3ce; }
-  table.spares { width:100%; border-collapse:collapse; font-size:10pt; table-layout:fixed; }
-  table.spares th, table.spares td { border:1px solid #a8a29e; padding:3px 4px; vertical-align:middle; overflow-wrap:anywhere; font-size:10pt; }
+  table.spares { width:100%; border-collapse:collapse; font-size:10px; line-height:1.1; table-layout:fixed; }
+  table.spares th, table.spares td { border:1px solid #a8a29e; padding:1px 2px; vertical-align:middle; overflow-wrap:anywhere; font-size:10px; line-height:1.1; }
   table.spares th { background:#f5f5f4; font-weight:700; text-align:left; }
   table.spares th:nth-child(1) { width:6%; } table.spares th:nth-child(2) { width:14%; } table.spares th:nth-child(3) { width:31%; } table.spares th:nth-child(4) { width:7%; } table.spares th:nth-child(5) { width:11%; } table.spares th:nth-child(n+6) { width:10.3%; }
   table.spares thead { display:table-header-group; } table.spares tr { break-inside:avoid; }\n  .word-grid-title { font-size:13pt !important; }\n  .rbody p, .rbody li, .rbody td, .rbody th { font-size:11pt; }\n  table.spares th, table.spares td { font-size:10pt; }
@@ -1945,29 +1945,24 @@ function App() {
     try {
       const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
       const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      const frame = document.createElement("iframe");
-      frame.style.cssText = "position:fixed;width:1px;height:1px;right:0;bottom:0;border:0;opacity:0;pointer-events:none";
-      frame.onload = () => {
-        try { frame.contentDocument.title = getReportFileStem(unitInfo); } catch (_) {}
-        frame.contentWindow.focus();
-        frame.contentWindow.print();
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          frame.remove();
-        }, 60000);
-      };
-      frame.src = url;
-      document.body.appendChild(frame);
-      return;
+      const win = window.open(url, "_blank");
       if (!win) {
+        URL.revokeObjectURL(url);
         showToast("Pop-up blocked  -  allow pop-ups for this page, then try again", true);
         return;
       }
-      win.document.open();
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(() => win.print(), 700);
+      const printReport = () => {
+        try {
+          win.document.title = getReportFileStem(unitInfo);
+          win.focus();
+          win.print();
+        } catch (_) {
+          showToast("Couldn't prepare the PDF", true);
+        }
+      };
+      win.addEventListener("load", printReport, { once: true });
+      setTimeout(printReport, 900);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (e) {
       showToast("Couldn't prepare the PDF", true);
     }
