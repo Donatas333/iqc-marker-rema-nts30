@@ -1425,6 +1425,14 @@ function App() {
       setCropRequest(null);
       return;
     }
+    if (target.kind === "part-edit") {
+      updatePartData(target.partId, (d) => ({
+        ...d,
+        [target.bucketKey]: d[target.bucketKey].map((p) => (p.id === target.photoId ? { ...p, dataUrl } : p)),
+      }));
+      setCropRequest(null);
+      return;
+    }
     const photo = { id: uid(), dataUrl, caption: "", size: 160, category: target.category || "rema-overview" };
     if (target.kind === "overview") {
       setOverviewPhotos((prev) => {
@@ -1480,6 +1488,15 @@ function App() {
 
   function editOverviewPhoto(photo) {
     setCropRequest({ target: { kind: "overview-edit", photoId: photo.id }, files: [{ name: "photo.jpg" }], index: 0, source: photo.dataUrl });
+  }
+
+  function editPartPhoto(bucketKey, photo) {
+    setCropRequest({
+      target: { kind: "part-edit", bucketKey, partId: activePartId, photoId: photo.id },
+      files: [{ name: "photo.jpg" }],
+      index: 0,
+      source: photo.dataUrl,
+    });
   }
 
   function removeOverviewPhoto(photoId) {
@@ -1741,23 +1758,6 @@ function App() {
               IQC Marker <span className="text-slate-400 font-normal normal-case text-sm"> -  REMA {reportModel}</span>
             </h1>
           </div>
-          <div className="flex flex-wrap items-center gap-2 ml-0 sm:ml-auto text-xs">
-            {[
-              { key: "hcode", ph: "H-code" },
-              { key: "rtm", ph: "RTM name/number" },
-              { key: "operator", ph: "Operator" },
-              { key: "date", ph: "Reporting date" },
-            ].map((f) => (
-              <input
-                key={f.key}
-                value={unitInfo[f.key] || ""}
-                onChange={(e) => handleUnitInfoChange(f.key, e.target.value)}
-                placeholder={f.ph}
-                className="bg-slate-800 text-slate-100 placeholder-slate-500 rounded px-2 py-1.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-400 w-28 sm:w-36"
-                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
-              />
-            ))}
-          </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <button
               onClick={handleExportClick}
@@ -2011,7 +2011,7 @@ function App() {
                     onAdd={(files) => addPhotosToBucket("damagePhotos", files)}
                     onRemove={(id) => removePhotoFromBucket("damagePhotos", id)}
                     onCaption={(id, c) => updateCaptionInBucket("damagePhotos", id, c)}
-                    onResize={(id, size) => setPhotoSize("damagePhotos", id, size)}
+                    onEdit={(photo) => editPartPhoto("damagePhotos", photo)}
                     onOpenLightbox={setLightbox}
                   />
                 </div>
@@ -2023,7 +2023,7 @@ function App() {
                     onAdd={(files) => addPhotosToBucket("stainPhotos", files)}
                     onRemove={(id) => removePhotoFromBucket("stainPhotos", id)}
                     onCaption={(id, c) => updateCaptionInBucket("stainPhotos", id, c)}
-                    onResize={(id, size) => setPhotoSize("stainPhotos", id, size)}
+                    onEdit={(photo) => editPartPhoto("stainPhotos", photo)}
                     onOpenLightbox={setLightbox}
                   />
                 </div>
