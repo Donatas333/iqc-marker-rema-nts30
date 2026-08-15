@@ -573,11 +573,16 @@ function markDivHtml(mark) {
   const pct = SIZE_PCT[mark.size] || SIZE_PCT.M;
   const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
   const strokeVB = 6.5;
+  const left = mark.x - pct / 2;
+  const top = mark.y - pct / 2;
   const pos = `position:absolute;left:${mark.x}%;top:${mark.y}%;width:${pct}%;aspect-ratio:1/1;transform:translate(-50%,-50%);overflow:visible;`;
+  const wordShape = mark.type === "damage"
+    ? `<!--[if gte vml 1]><v:oval style="position:absolute;left:${left}%;top:${top}%;width:${pct}%;height:${pct}%;z-index:8" strokecolor="${color}" strokeweight="2pt" fillcolor="#ffffff"><v:fill opacity="0"/></v:oval><![endif]-->`
+    : `<!--[if gte vml 1]><v:shape style="position:absolute;left:${left}%;top:${top}%;width:${pct}%;height:${pct}%;z-index:8" coordsize="100,100" path="m 50,10 l 90,88,10,88 x e" strokecolor="${color}" strokeweight="2pt" fillcolor="#ffffff"><v:fill opacity="0"/></v:shape><![endif]-->`;
   if (mark.type === "damage") {
-    return `<svg style="${pos}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" /></svg>`;
+    return wordShape + `<svg style="${pos}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" /></svg>`;
   }
-  return `<svg style="${pos}" viewBox="0 0 100 100"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" stroke-linejoin="round" /></svg>`;
+  return wordShape + `<svg style="${pos}" viewBox="0 0 100 100"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" stroke-linejoin="round" /></svg>`;
 }
 
 function photoImgHtml(photo, borderColor) {
@@ -587,6 +592,28 @@ function photoImgHtml(photo, borderColor) {
 
 
 function buildWordHtml(reportData) {
+  const sourceHtml = buildReportHtml(reportData);
+  const sourceDoc = new DOMParser().parseFromString(sourceHtml, "text/html");
+
+  // Word does not support CSS Grid. Replace every photo grid with a native
+  // Word-friendly table, preserving the same two-column / three-row layout.
+  sourceDoc.querySelectorAll(".word-two-up").forEach((grid) => {
+    const children = Array.from(grid.children);
+    const heading = children.find((child) => child.classList && child.classList.contains("word-grid-title"));
+    const cells = children.filter((child) => child.tagName === "DIV");
+    const rows = [];
+    for (let index = 0; index < cells.length; index += 2) {
+      rows.push(
+        "<tr>" +
+          [cells[index], cells[index + 1]]
+            .map((cell) => `<td style="width:50%;vertical-align:top;padding:3pt;">${cell ? cell.outerHTML : ""}</td>`)
+            .join("") +
+          "</tr>"
+      );
+    }
+    grid.innerHTML = `${heading ? heading.outerHTML : ""}<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;table-layout:fixed;">${rows.join("")}</table>`;
+  });
+
   const wordOnlyStyles = `<!--[if gte mso 9]>
   <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
   <style>
@@ -598,9 +625,9 @@ function buildWordHtml(reportData) {
     .hdr > span:first-child { font-size:16pt !important; }
     .rbody { padding:20pt 0 8pt !important; }
     .ftr { display:none !important; }
-    .word-two-up { width:100% !important; font-size:0 !important; }
-    .word-two-up > div { display:inline-block !important; width:48.6% !important; vertical-align:top !important; margin:0 1.1% 9pt 0 !important; font-size:10pt !important; }
-    .word-grid-title { display:block !important; width:100% !important; }
+    .word-two-up { width:100% !important; }
+    .word-two-up table { width:100% !important; table-layout:fixed !important; }
+    .word-two-up td { vertical-align:top !important; }
     section, h3.chapter-break { page-break-before:always !important; }
     h3 { font-size:16pt !important; margin:16pt 0 7pt !important; }
     table { width:100% !important; }
@@ -608,8 +635,9 @@ function buildWordHtml(reportData) {
   </style>
   <![endif]-->`;
   const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;" /></p></div><![endif]-->`;
-  return buildReportHtml(reportData)
-    .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
+  const html = "<!DOCTYPE html>\n" + sourceDoc.documentElement.outerHTML;
+  return html
+    .replace("<html><head>", "<html xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
     .replace("</head>", wordOnlyStyles + "</head>")
     .replace("<body>", wordFooter + '<body><div class="WordSection1">')
     .replace("</body>", "</div></body>");
