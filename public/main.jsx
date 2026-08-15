@@ -714,6 +714,16 @@ async function buildWordHtml(reportData) {
     return `<div style="width:${side}px;text-align:center;"><img src="${src}" width="${side}" height="${side}" style="display:block;width:${side}px;height:${side}px;border:1px solid #d6d3ce;" />${text ? `<p style="margin:3pt 0 5pt;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</div>`;
   }
 
+  // Quickscan is intentionally its own 2 x 2 layout. Insert a Word-native
+  // page break before each subsequent set of four Quickscan drawings.
+  Array.from(sourceDoc.querySelectorAll(".word-quickscan")).forEach((grid, index) => {
+    if (index === 0) return;
+    const breaker = sourceDoc.createElement("p");
+    breaker.innerHTML = "&nbsp;";
+    breaker.setAttribute("style", "page-break-before:always;mso-break-type:page-break;margin:0;line-height:1pt;font-size:1pt;height:1pt;");
+    grid.parentNode.insertBefore(breaker, grid);
+  });
+
   // CSS grid is not dependable in .doc HTML. Rebuild every report grid using
   // a fixed, centred two-column table. Chapter pages therefore always hold
   // six equal square tiles (two columns x three rows).
@@ -723,7 +733,7 @@ async function buildWordHtml(reportData) {
     const cells = children.filter((child) => child.tagName === "DIV");
     const isChapterGrid = Boolean(heading);
     const isQuickscan = grid.classList.contains("word-quickscan");
-    const tileSize = isChapterGrid ? 160 : isQuickscan ? 205 : 190;
+    const tileSize = isChapterGrid ? 180 : isQuickscan ? 235 : 215;
     const tableWidth = tileSize * 2 + 12;
     const rows = [];
 
@@ -752,12 +762,12 @@ async function buildWordHtml(reportData) {
     img { -ms-interpolation-mode:bicubic; }
   </style>
   <![endif]-->`;
-  const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;" /></p></div><![endif]-->`;
+  const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:5pt;margin:0;text-align:left;"><img src="${FOOTER_DATA_URL}" style="height:50pt;width:auto;display:block;" /></p></div><![endif]-->`;
   const html = "<!DOCTYPE html>\\n" + sourceDoc.documentElement.outerHTML;
   return html
     .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
     .replace("</head>", wordOnlyStyles + "</head>")
-    .replace("<body>", wordFooter + '<body><div class="WordSection1">')
+    .replace("<body>", "<body>" + wordFooter + '<div class="WordSection1">')
     .replace("</body>", "</div></body>");
 }
 
