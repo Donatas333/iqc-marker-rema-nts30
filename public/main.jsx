@@ -585,6 +585,36 @@ function photoImgHtml(photo, borderColor) {
   return `<div><img src="${photo.dataUrl}" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;border:1px solid ${borderColor};display:block;" />${capt}</div>`;
 }
 
+
+function buildWordHtml(reportData) {
+  const wordOnlyStyles = `<!--[if gte mso 9]>
+  <xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml>
+  <style>
+    @page WordSection1 { size:595.3pt 841.9pt; margin:22pt 26pt 56pt 26pt; mso-footer:f1; }
+    div.WordSection1 { page:WordSection1; }
+    body { background:#fff !important; }
+    .sheet { width:100% !important; max-width:none !important; margin:0 !important; }
+    .hdr { width:100% !important; min-height:44pt !important; padding:8pt 0 !important; border-bottom:2pt solid #0f172a !important; }
+    .hdr > span:first-child { font-size:16pt !important; }
+    .rbody { padding:20pt 0 8pt !important; }
+    .ftr { display:none !important; }
+    .word-two-up { width:100% !important; font-size:0 !important; }
+    .word-two-up > div { display:inline-block !important; width:48.6% !important; vertical-align:top !important; margin:0 1.1% 9pt 0 !important; font-size:10pt !important; }
+    .word-grid-title { display:block !important; width:100% !important; }
+    section, h3.chapter-break { page-break-before:always !important; }
+    h3 { font-size:16pt !important; margin:16pt 0 7pt !important; }
+    table { width:100% !important; }
+    img { -ms-interpolation-mode:bicubic; }
+  </style>
+  <![endif]-->`;
+  const wordFooter = `<!--[if gte mso 9]><div style="mso-element:footer" id="f1"><p class="MsoFooter" style="border-top:1.5pt solid #0f172a;padding-top:4pt;margin:0;"><img src="${FOOTER_DATA_URL}" style="height:42pt;width:auto;" /></p></div><![endif]-->`;
+  return buildReportHtml(reportData)
+    .replace("<html><head>", "<html xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:w=\"urn:schemas-microsoft-com:office:word\" xmlns=\"http://www.w3.org/TR/REC-html40\"><head>")
+    .replace("</head>", wordOnlyStyles + "</head>")
+    .replace("<body>", wordFooter + '<body><div class="WordSection1">')
+    .replace("</body>", "</div></body>");
+}
+
 function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   const reportModel = getNtsModel(unitInfo.rtm);
   function quickscanCardHtml(p) {
@@ -596,14 +626,14 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     if (index % 4 === 0) pages.push([]);
     pages[pages.length - 1].push(part);
     return pages;
-  }, []).map((page, index) => `<div style="${index ? "break-before:page;padding-top:68px;" : ""}break-inside:avoid;"><div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
+  }, []).map((page, index) => `<div style="${index ? "break-before:page;padding-top:68px;" : ""}break-inside:avoid;"><div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:10px;">${page.map(quickscanCardHtml).join("")}</div></div>`).join("");
 
   function chapterBlock(chapterNo, titleFn, photoKey, markType) {
     const blocks = buildChapterBlocks(PARTS, partData, photoKey, markType);
     return blocks
       .map((block, idx) => {
         const heading = block.hasDiagram
-          ? `<p style="grid-column:1 / -1;font-size:11px;color:#475569;margin:0;padding:4px 2px 2px;font-weight:600;">${chapterNo}.${block.partIndex + 1} ${titleFn(
+          ? `<p class="word-grid-title" style="grid-column:1 / -1;font-size:11px;color:#475569;margin:0;padding:4px 2px 2px;font-weight:600;">${chapterNo}.${block.partIndex + 1} ${titleFn(
               block.part.reportName || block.part.name
             )}</p>`
           : "";
@@ -626,7 +656,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
           .join("");
         const emptyNote = "";
         const breakStyle = idx === 0 ? "" : "break-before:page;padding-top:68px;";
-        return `<div style="margin-bottom:20px;break-inside:avoid;page-break-inside:avoid;${breakStyle}"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(100%,660px);margin:0 auto;padding:0;background:transparent;border:0;border-radius:0;overflow:visible;break-inside:avoid;page-break-inside:avoid;">${heading}${diagramCell}${photoCells}</div>${emptyNote}</div>`;
+        return `<div style="margin-bottom:20px;break-inside:avoid;page-break-inside:avoid;${breakStyle}"><div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(100%,660px);margin:0 auto;padding:0;background:transparent;border:0;border-radius:0;overflow:visible;break-inside:avoid;page-break-inside:avoid;">${heading}${diagramCell}${photoCells}</div>${emptyNote}</div>`;
       })
       .join("");
   }
@@ -647,7 +677,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
     { label: "REMA overview - example", image: SAMPLE_REMA_OVERVIEW, example: true },
     { label: "REMA overview - uploaded", image: remaOverviewPhoto && remaOverviewPhoto.dataUrl },
   ];
-  const overviewHtml = `<div style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;width:560px;max-width:100%;margin:0 auto;break-inside:avoid;">${overviewSlots.map((slot) => `<div style="aspect-ratio:1/1;overflow:hidden;border:1px solid #cbd5e1;background:#f8fafc;position:relative;"><img src="${slot.image || SAMPLE_REMA_OVERVIEW}" style="width:100%;height:100%;object-fit:cover;display:block;${slot.example ? "opacity:.88;" : ""}" />${!slot.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);font-size:13px;font-weight:600;color:#64748b;text-align:center;padding:18px;">Upload ${slot.label.replace(" - uploaded", "")} photo</div>` : ""}<p style="position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 8px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:600;">${slot.label}</p></div>`).join("")}</div>`;
+  const overviewHtml = `<div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;width:560px;max-width:100%;margin:0 auto;break-inside:avoid;">${overviewSlots.map((slot) => `<div style="aspect-ratio:1/1;overflow:hidden;border:1px solid #cbd5e1;background:#f8fafc;position:relative;"><img src="${slot.image || SAMPLE_REMA_OVERVIEW}" style="width:100%;height:100%;object-fit:cover;display:block;${slot.example ? "opacity:.88;" : ""}" />${!slot.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);font-size:13px;font-weight:600;color:#64748b;text-align:center;padding:18px;">Upload ${slot.label.replace(" - uploaded", "")} photo</div>` : ""}<p style="position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 8px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:600;">${slot.label}</p></div>`).join("")}</div>`;
 
   const remarksHtml =
     remarks.length === 0
@@ -1710,8 +1740,8 @@ function App() {
 
   function exportWord() {
     try {
-      const html = repairMojibake(buildReportHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
-      const blob = new Blob([html], { type: "application/msword" });
+      const html = repairMojibake(buildWordHtml({ unitInfo, overviewPhotos, partData, remarks })).replace(/[ÃÂ]/g, "");
+      const blob = new Blob(["\ufeff", html], { type: "application/msword;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const namePart = (unitInfo.hcode || unitInfo.rtm || "REMA-" + getNtsModel(unitInfo.rtm)).replace(/[^a-z0-9-]+/gi, "_");
