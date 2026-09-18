@@ -1240,21 +1240,69 @@ React.createElement = function createCleanElement(type, props, ...children) {
 };
 
 // Every uploaded photo goes through this editor. Keeping the crop operation in
-// the browser makes it fast, works offline, and means only the smaller square
+// the browser makes it fast, works offline, and means only the smaller 4:3
 // image is saved with the inspection.
-function SquareCropEditor({ source, fileName, onSave, onCancel }) {
+function SquareCropEditor({ source, fileName, batchPosition, batchTotal, onSave, onCancel }) {
   const [image, setImage] = useState(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef(null);
+  const saving = useRef(false);
   const boxWidth = 360;
   const boxHeight = 270;
 
   useEffect(() => {
+    let cancelled = false;
+    setImage(null);
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+    saving.current = false;
     const img = new Image();
-    img.onload = () => setImage(img);
+    img.onload = () => {
+      if (!cancelled) setImage(img);
+    };
     img.src = source;
+    return () => {
+      cancelled = true;
+    };
   }, [source]);
+
+  const save = useCallback(() => {
+    if (!image || saving.current) return;
+    saving.current = true;
+    const baseScale = Math.max(boxWidth / image.naturalWidth, boxHeight / image.naturalHeight);
+    const scale = baseScale * zoom;
+    const width = image.naturalWidth * scale;
+    const height = image.naturalHeight * scale;
+    const outputWidth = 1200;
+    const outputHeight = 900;
+    const canvas = document.createElement("canvas");
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outputWidth, outputHeight);
+    const outputScale = outputWidth / boxWidth;
+    ctx.drawImage(
+      image,
+      ((boxWidth - width) / 2 + offset.x) * outputScale,
+      ((boxHeight - height) / 2 + offset.y) * outputScale,
+      width * outputScale,
+      height * outputScale
+    );
+    onSave(canvas.toDataURL("image/jpeg", 0.86));
+  }, [image, offset.x, offset.y, onSave, zoom]);
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key !== "Enter" || event.repeat || event.isComposing) return;
+      if (event.target instanceof HTMLButtonElement) return;
+      event.preventDefault();
+      save();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [save]);
 
   if (!image) {
     return (
@@ -1299,32 +1347,14 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
       y: clampAxis(current.y, nextHeight, boxHeight),
     }));
   }
-  function save() {
-    const outputWidth = 1200;
-    const outputHeight = 900;
-    const canvas = document.createElement("canvas");
-    canvas.width = outputWidth;
-    canvas.height = outputHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, outputWidth, outputHeight);
-    const outputScale = outputWidth / boxWidth;
-    ctx.drawImage(
-      image,
-      ((boxWidth - width) / 2 + offset.x) * outputScale,
-      ((boxHeight - height) / 2 + offset.y) * outputScale,
-      width * outputScale,
-      height * outputScale
-    );
-    onSave(canvas.toDataURL("image/jpeg", 0.86));
-  }
-
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
         <div className="px-4 py-3 border-b border-stone-200">
           <h2 className="text-base font-semibold text-slate-900">Crop photo to 4:3</h2>
-          <p className="text-xs text-slate-500 mt-0.5 truncate">{fileName}  /  drag to position, then use the slider to zoom out or in</p>
+          <p className="text-xs text-slate-500 mt-0.5 truncate">
+            {batchTotal > 1 ? `Photo ${batchPosition} of ${batchTotal}  /  ` : ""}{fileName}  /  drag to position, then use the slider to zoom out or in
+          </p>
         </div>
         <div className="p-4 flex justify-center bg-stone-100">
           <div
@@ -1355,7 +1385,9 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
           </div>
           <div className="mt-4 flex justify-end gap-2">
             <button type="button" onClick={onCancel} className="px-3 py-2 text-sm rounded-md border border-stone-300 text-slate-600 hover:bg-stone-50">Cancel</button>
-            <button type="button" onClick={save} className="px-3 py-2 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800">Use 4:3 photo</button>
+            <button type="button" onClick={save} aria-keyshortcuts="Enter" className="px-3 py-2 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800">
+              Use 4:3 photo <span className="ml-1.5 text-[11px] text-slate-300">Enter</span>
+            </button>
           </div>
         </div>
       </div>
@@ -2895,6 +2927,8 @@ function App() {
         <SquareCropEditor
           source={cropRequest.source}
           fileName={cropRequest.files[cropRequest.index].name}
+          batchPosition={cropRequest.index + 1}
+          batchTotal={cropRequest.files.length}
           onSave={saveCroppedPhoto}
           onCancel={() => setCropRequest(null)}
         />
