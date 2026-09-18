@@ -517,6 +517,8 @@ const SPARE_PARTS = [
 ];
 
 const SIZE_PCT = { S: 4.5, M: 7.5, L: 14, XL: 22, XXL: 32 };
+const MARKER_STROKE_PX = { S: 1.5, M: 2.5, L: 3, XL: 3.25, XXL: 3.5 };
+const MIN_MARKER_PCT = 3;
 const SAMPLE_H_NUMBER = hNumberExampleImage;
 const SAMPLE_REMA_OVERVIEW = remaOverviewExampleImage;
 let FOOTER_DATA_URL = footerImage;
@@ -528,6 +530,20 @@ const ACCENTS = {
   blue: { active: "border-blue-400 bg-blue-50", text: "text-blue-600", solid: "bg-blue-600" },
   amber: { active: "border-amber-400 bg-amber-50", text: "text-amber-600", solid: "bg-amber-500" },
 };
+
+function getMarkerDimensions(mark) {
+  const preset = SIZE_PCT[mark.size] || SIZE_PCT.M;
+  const width = Number(mark.widthPct);
+  const height = Number(mark.heightPct);
+  return {
+    width: Number.isFinite(width) && width > 0 ? width : preset,
+    height: Number.isFinite(height) && height > 0 ? height : preset,
+  };
+}
+
+function getMarkerStroke(mark) {
+  return MARKER_STROKE_PX[mark.size] || MARKER_STROKE_PX.M;
+}
 
 function getNtsModel(rtm) {
   const match = String(rtm || "").match(/\bNTS\s*[-_ ]?(\d{2})/i);
@@ -643,14 +659,14 @@ function esc(s) {
 }
 
 function markDivHtml(mark) {
-  const pct = SIZE_PCT[mark.size] || SIZE_PCT.M;
+  const { width, height } = getMarkerDimensions(mark);
   const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
-  const strokeVB = 6.5;
-  const pos = `position:absolute;left:${mark.x}%;top:${mark.y}%;width:${pct}%;aspect-ratio:1/1;transform:translate(-50%,-50%);overflow:visible;`;
+  const stroke = getMarkerStroke(mark);
+  const pos = `position:absolute;left:${mark.x}%;top:${mark.y}%;width:${width}%;height:${height}%;transform:translate(-50%,-50%);overflow:visible;`;
   if (mark.type === "damage") {
-    return `<svg style="${pos}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" /></svg>`;
+    return `<svg style="${pos}" viewBox="0 0 100 100" preserveAspectRatio="none"><circle cx="50" cy="50" r="42" fill="transparent" stroke="${color}" stroke-width="${stroke}" vector-effect="non-scaling-stroke" /></svg>`;
   }
-  return `<svg style="${pos}" viewBox="0 0 100 100"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${strokeVB}" stroke-linejoin="round" /></svg>`;
+  return `<svg style="${pos}" viewBox="0 0 100 100" preserveAspectRatio="none"><polygon points="50,10 90,88 10,88" fill="transparent" stroke="${color}" stroke-width="${stroke}" vector-effect="non-scaling-stroke" stroke-linejoin="round" /></svg>`;
 }
 
 async function buildWordMarkedPartImage(part, marks) {
@@ -672,19 +688,21 @@ async function buildWordMarkedPartImage(part, marks) {
   const height = image.naturalHeight * scale;
   ctx.drawImage(image, (side - width) / 2, (side - height) / 2, width, height);
   marks.forEach((mark) => {
-    const size = ((SIZE_PCT[mark.size] || SIZE_PCT.M) / 100) * side;
+    const markerDimensions = getMarkerDimensions(mark);
+    const markerWidth = (markerDimensions.width / 100) * side;
+    const markerHeight = (markerDimensions.height / 100) * side;
     const x = (mark.x / 100) * side;
     const y = (mark.y / 100) * side;
     const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
     ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(4, size * 0.065);
+    ctx.lineWidth = getMarkerStroke(mark) * (side / 520);
     ctx.lineJoin = "round";
     ctx.beginPath();
-    if (mark.type === "damage") ctx.arc(x, y, size * 0.42, 0, Math.PI * 2);
+    if (mark.type === "damage") ctx.ellipse(x, y, markerWidth * 0.42, markerHeight * 0.42, 0, 0, Math.PI * 2);
     else {
-      ctx.moveTo(x, y - size * 0.4);
-      ctx.lineTo(x + size * 0.4, y + size * 0.38);
-      ctx.lineTo(x - size * 0.4, y + size * 0.38);
+      ctx.moveTo(x, y - markerHeight * 0.4);
+      ctx.lineTo(x + markerWidth * 0.4, y + markerHeight * 0.38);
+      ctx.lineTo(x - markerWidth * 0.4, y + markerHeight * 0.38);
       ctx.closePath();
     }
     ctx.stroke();
@@ -1342,33 +1360,72 @@ function SquareCropEditor({ source, fileName, onSave, onCancel }) {
   );
 }
 
-function Marker({ mark, selected, onPointerDown }) {
-  const pct = SIZE_PCT[mark.size] || SIZE_PCT.M;
+function Marker({ mark, selected, onPointerDown, onResizePointerDown }) {
+  const { width, height } = getMarkerDimensions(mark);
   const color = mark.type === "damage" ? DAMAGE_COLOR : STAIN_COLOR;
-  const strokeVB = 6.5; // stroke width in the 0-100 viewBox  -  scales with the shape automatically
+  const stroke = getMarkerStroke(mark);
   const wrapStyle = {
     position: "absolute",
     left: `${mark.x}%`,
     top: `${mark.y}%`,
-    width: `${pct}%`,
-    aspectRatio: "1 / 1",
+    width: `${width}%`,
+    height: `${height}%`,
     transform: "translate(-50%, -50%)",
     touchAction: "none",
-    cursor: onPointerDown ? "grab" : "default",
     overflow: "visible",
   };
   const fill = selected ? `${color}33` : "transparent";
-  if (mark.type === "damage") {
-    return (
-      <svg onPointerDown={(e) => onPointerDown && onPointerDown(e, mark.id)} viewBox="0 0 100 100" style={wrapStyle}>
-        <circle cx="50" cy="50" r="42" fill={fill} stroke={color} strokeWidth={strokeVB} />
-      </svg>
-    );
-  }
+  const handles = [
+    { side: "left", label: "Resize marker from left", cursor: "ew-resize", style: { left: 0, top: "50%" } },
+    { side: "right", label: "Resize marker from right", cursor: "ew-resize", style: { left: "100%", top: "50%" } },
+    { side: "top", label: "Resize marker from top", cursor: "ns-resize", style: { left: "50%", top: 0 } },
+    { side: "bottom", label: "Resize marker from bottom", cursor: "ns-resize", style: { left: "50%", top: "100%" } },
+  ];
   return (
-    <svg onPointerDown={(e) => onPointerDown && onPointerDown(e, mark.id)} viewBox="0 0 100 100" style={wrapStyle}>
-      <polygon points="50,10 90,88 10,88" fill={fill} stroke={color} strokeWidth={strokeVB} strokeLinejoin="round" />
-    </svg>
+    <div data-marker-id={mark.id} style={wrapStyle} onClick={(e) => e.stopPropagation()}>
+      <svg
+        onPointerDown={(e) => onPointerDown && onPointerDown(e, mark.id)}
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        style={{ width: "100%", height: "100%", overflow: "visible", cursor: onPointerDown ? "grab" : "default" }}
+      >
+        {mark.type === "damage" ? (
+          <circle cx="50" cy="50" r="42" fill={fill} stroke={color} strokeWidth={stroke} vectorEffect="non-scaling-stroke" />
+        ) : (
+          <polygon
+            points="50,10 90,88 10,88"
+            fill={fill}
+            stroke={color}
+            strokeWidth={stroke}
+            vectorEffect="non-scaling-stroke"
+            strokeLinejoin="round"
+          />
+        )}
+      </svg>
+      {selected && onResizePointerDown && handles.map((handle) => (
+        <button
+          key={handle.side}
+          data-resize-handle={handle.side}
+          type="button"
+          aria-label={handle.label}
+          onPointerDown={(e) => onResizePointerDown(e, mark, handle.side)}
+          style={{
+            position: "absolute",
+            ...handle.style,
+            width: 12,
+            height: 12,
+            padding: 0,
+            borderRadius: "9999px",
+            border: `2px solid ${color}`,
+            background: "white",
+            transform: "translate(-50%, -50%)",
+            cursor: handle.cursor,
+            touchAction: "none",
+            zIndex: 2,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -1483,6 +1540,7 @@ function App() {
   const [markSize, setMarkSize] = useState("M");
   const [selectedMarkId, setSelectedMarkId] = useState(null);
   const [draggingId, setDraggingId] = useState(null);
+  const [resizingMark, setResizingMark] = useState(null);
   const [dragMoved, setDragMoved] = useState(false);
   const [view, setView] = useState("overview");
   const [saving, setSaving] = useState(false);
@@ -1664,6 +1722,26 @@ function App() {
     setDragMoved(false);
   }
 
+  function handleResizePointerDown(e, mark, side) {
+    e.preventDefault();
+    e.stopPropagation();
+    const dimensions = getMarkerDimensions(mark);
+    setSelectedMarkId(mark.id);
+    setDraggingId(null);
+    setDragMoved(false);
+    setResizingMark({
+      id: mark.id,
+      side,
+      pointerId: e.pointerId,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      x: mark.x,
+      y: mark.y,
+      width: dimensions.width,
+      height: dimensions.height,
+    });
+  }
+
   useEffect(() => {
     if (!draggingId) return;
     function onMove(e) {
@@ -1696,6 +1774,67 @@ function App() {
     };
   }, [draggingId, activePartId, persistPart]);
 
+  useEffect(() => {
+    if (!resizingMark) return;
+
+    function onMove(e) {
+      if (e.pointerId !== resizingMark.pointerId) return;
+      const rect = imgWrapRef.current.getBoundingClientRect();
+      const dx = ((e.clientX - resizingMark.clientX) / rect.width) * 100;
+      const dy = ((e.clientY - resizingMark.clientY) / rect.height) * 100;
+      let left = resizingMark.x - resizingMark.width / 2;
+      let right = resizingMark.x + resizingMark.width / 2;
+      let top = resizingMark.y - resizingMark.height / 2;
+      let bottom = resizingMark.y + resizingMark.height / 2;
+
+      if (resizingMark.side === "left") left = Math.max(0, Math.min(right - MIN_MARKER_PCT, left + dx));
+      if (resizingMark.side === "right") right = Math.min(100, Math.max(left + MIN_MARKER_PCT, right + dx));
+      if (resizingMark.side === "top") top = Math.max(0, Math.min(bottom - MIN_MARKER_PCT, top + dy));
+      if (resizingMark.side === "bottom") bottom = Math.min(100, Math.max(top + MIN_MARKER_PCT, bottom + dy));
+
+      const width = right - left;
+      const height = bottom - top;
+      const x = left + width / 2;
+      const y = top + height / 2;
+      setDragMoved(true);
+      setPartData((prev) => {
+        const d = prev[activePartId] || EMPTY_PART;
+        const marks = d.marks.map((mark) => (
+          mark.id === resizingMark.id
+            ? {
+                ...mark,
+                x: Number(x.toFixed(2)),
+                y: Number(y.toFixed(2)),
+                widthPct: Number(width.toFixed(2)),
+                heightPct: Number(height.toFixed(2)),
+              }
+            : mark
+        ));
+        return { ...prev, [activePartId]: { ...d, marks } };
+      });
+    }
+
+    function onUp(e) {
+      if (e.pointerId !== resizingMark.pointerId) return;
+      setResizingMark(null);
+      setPartData((prev) => {
+        const d = prev[activePartId] || EMPTY_PART;
+        persistPart(activePartId, d);
+        return prev;
+      });
+      setTimeout(() => setDragMoved(false), 50);
+    }
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [resizingMark, activePartId, persistPart]);
+
   function deleteMark(markId) {
     updatePartData(activePartId, (d) => ({ ...d, marks: d.marks.filter((m) => m.id !== markId) }));
     setSelectedMarkId(null);
@@ -1709,7 +1848,7 @@ function App() {
         if (m.id !== markId) return m;
         const idx = order.indexOf(m.size);
         const nextIdx = Math.max(0, Math.min(order.length - 1, idx + dir));
-        return { ...m, size: order[nextIdx] };
+        return { ...m, size: order[nextIdx], widthPct: undefined, heightPct: undefined };
       }),
     }));
   }
@@ -1717,7 +1856,7 @@ function App() {
   function setSelectedMarkSize(markId, size) {
     updatePartData(activePartId, (d) => ({
       ...d,
-      marks: d.marks.map((m) => (m.id === markId ? { ...m, size } : m)),
+      marks: d.marks.map((m) => (m.id === markId ? { ...m, size, widthPct: undefined, heightPct: undefined } : m)),
     }));
   }
 
@@ -2340,20 +2479,27 @@ function App() {
 
               <p className="text-xs text-slate-400 mb-2">
                 {mode === "select"
-                  ? "Drag a mark to reposition it, or tap one to resize / delete."
+                  ? "Drag a mark to move it. Drag a white side handle to stretch it."
                   : `Tap anywhere on the drawing to drop a ${mode === "damage" ? "damage circle" : "stain triangle"}.`}
               </p>
 
               <div className="bg-white border border-stone-300 rounded-lg p-3 sm:p-4">
                 <div
                   ref={imgWrapRef}
+                  data-testid="marker-canvas"
                   onClick={handleImageClick}
                   className="relative select-none mx-auto"
                   style={{ maxWidth: "100%", width: 520, cursor: mode === "select" ? "default" : "crosshair", touchAction: "none" }}
                 >
                   <img src={activePart.img} alt={activePart.name} className="w-full h-auto rounded block" draggable={false} />
                   {activeData.marks.map((m) => (
-                    <Marker key={m.id} mark={m} selected={m.id === selectedMarkId} onPointerDown={handleMarkPointerDown} />
+                    <Marker
+                      key={m.id}
+                      mark={m}
+                      selected={m.id === selectedMarkId}
+                      onPointerDown={handleMarkPointerDown}
+                      onResizePointerDown={mode === "select" ? handleResizePointerDown : undefined}
+                    />
                   ))}
                 </div>
 
@@ -2399,7 +2545,10 @@ function App() {
                 <>
                   <div className="flex items-center gap-3 mb-3">
                     {selectedMark.type === "damage" ? <Circle size={47} className="text-red-600" strokeWidth={3} /> : <Triangle size={49} className="text-blue-600" strokeWidth={3} />}
-                    <div className="text-sm text-slate-600 leading-5"><div className="font-semibold">{selectedMark.type === "damage" ? "Damage" : "Stain"}</div><div>Size: {selectedMark.size}</div></div>
+                    <div className="text-sm text-slate-600 leading-5">
+                      <div className="font-semibold">{selectedMark.type === "damage" ? "Damage" : "Stain"}</div>
+                      <div>Size: {selectedMark.size}{selectedMark.widthPct || selectedMark.heightPct ? " (custom)" : ""}</div>
+                    </div>
                   </div>
                   <div className="text-sm font-medium text-slate-600 mb-1.5">Size</div>
                   <div className="flex rounded-md border border-stone-300 overflow-hidden mb-3">
@@ -2407,9 +2556,10 @@ function App() {
                       <button key={size} onClick={() => setSelectedMarkSize(selectedMark.id, size)} className={`flex-1 h-9 text-xs font-semibold ${selectedMark.size === size ? "bg-amber-400 text-slate-900" : "bg-white text-slate-500 hover:bg-stone-50"} ${size !== "S" ? "border-l border-stone-300" : ""}`}>{size}</button>
                     ))}
                   </div>
+                  <p className="text-[11px] text-slate-400 leading-4 mb-3">Drag the white handles on the marker to change its width or height. Choosing a preset resets it to equal proportions.</p>
                   <button onClick={() => deleteMark(selectedMark.id)} className="flex items-center justify-center gap-2 w-full border border-red-300 text-red-600 rounded-md py-2 text-sm font-semibold hover:bg-red-50"><Trash2 size={16} /> Delete</button>
                 </>
-              ) : <p className="text-xs text-slate-400 leading-5">Select a circle or triangle on the drawing to change its size or delete it.</p>}
+              ) : <p className="text-xs text-slate-400 leading-5">Select a circle or triangle on the drawing to move, stretch, resize or delete it.</p>}
             </section>
             <section className="bg-white border border-stone-200 rounded-lg p-3 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-700 mb-3">Mark counts</h3>
