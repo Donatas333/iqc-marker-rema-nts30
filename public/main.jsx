@@ -814,7 +814,10 @@ async function buildWordHtml(reportData) {
     }
     if (!image) return `<div style="width:${width}px;height:${height}px;"></div>`;
     const src = image.getAttribute("src") || "";
-    return `<div style="width:${width}px;text-align:center;"><img src="${src}" width="${width}" height="${height}" style="display:block;width:${width}px;height:${height}px;border:1px solid #d6d3ce;" />${text ? `<p style="margin:3pt 0 5pt;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</div>`;
+    const inset = 10;
+    const imageWidth = width - inset;
+    const imageHeight = height - inset;
+    return `<table class="report-image-frame" role="presentation" cellpadding="0" cellspacing="0" border="0" width="${width}" style="width:${width}px;border:1.25pt solid #aeb8c4;border-collapse:collapse;table-layout:fixed;background:#f8fafc;page-break-inside:avoid;"><tr><td style="padding:4px;background:#f8fafc;text-align:center;vertical-align:top;"><img src="${src}" width="${imageWidth}" height="${imageHeight}" style="display:block;width:${imageWidth}px;height:${imageHeight}px;border:1px solid #dbe2ea;background:#fff;" />${text ? `<p style="margin:4pt 1pt 1pt;padding-top:4pt;border-top:1px solid #dbe2ea;text-align:center;font-size:8pt;line-height:10pt;color:#334155;">${text}</p>` : ""}</td></tr></table>`;
   }
 
   // Quickscan is intentionally its own 2 x 2 layout. Insert a Word-native
@@ -904,7 +907,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   function quickscanCardHtml(p) {
     const d = partData[p.id] || EMPTY_PART;
     const marks = d.marks.map(markDivHtml).join("");
-    return `<div style="border:1px solid #d6d3ce;border-radius:6px;padding:6px;break-inside:avoid;"><div style="position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;"><img data-part-id="${p.id}" src="${p.img}" style="width:100%;height:100%;object-fit:contain;border-radius:4px;display:block;" />${marks}</div><p style="font-size:11px;color:#334155;margin:4px 0 0;text-align:center;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(p.code)}</span> ${esc(p.name)}</p></div>`;
+    return `<div class="report-image-frame" style="border:1px solid #aeb8c4;border-radius:6px;padding:6px;background:#f8fafc;break-inside:avoid;"><div style="position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border:1px solid #dbe2ea;border-radius:4px;background:#fff;"><img data-part-id="${p.id}" src="${p.img}" style="width:100%;height:100%;object-fit:contain;display:block;" />${marks}</div><p style="font-size:11px;color:#334155;margin:5px 0 0;padding-top:5px;border-top:1px solid #dbe2ea;text-align:center;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(p.code)}</span> ${esc(p.name)}</p></div>`;
   }
   const quickscanHtml = PARTS.reduce((pages, part, index) => {
     if (index % 4 === 0) pages.push([]);
@@ -922,20 +925,20 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
             )}</p>`
           : "";
         const diagramCell = block.hasDiagram
-          ? `<div style="padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fafaf9;border:1px solid #d6d3ce;border-radius:6px;aspect-ratio:5/4;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;"><img src="${
+          ? `<div class="report-image-frame" style="padding:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;border:1px solid #aeb8c4;border-radius:6px;aspect-ratio:5/4;box-sizing:border-box;overflow:hidden;"><div style="position:relative;width:100%;max-width:220px;min-height:0;background:#fff;border:1px solid #dbe2ea;border-radius:4px;padding:3px;"><img src="${
               block.part.img
-            }" style="width:100%;height:auto;border-radius:4px;display:block;" /></div><p style="font-size:11px;font-weight:600;color:#1e293b;text-align:center;margin:8px 0 0;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(
+            }" style="width:100%;height:auto;display:block;" /></div><p style="width:100%;font-size:11px;font-weight:600;color:#1e293b;text-align:center;margin:5px 0 0;padding-top:5px;border-top:1px solid #dbe2ea;"><span style="font-family:'IBM Plex Mono',monospace;">${esc(
               block.part.code
             )}</span><br/>${esc(block.part.name)}</p></div>`
           : "";
         const photoCells = block.photos.length === 0 ? `<div style="aspect-ratio:5/4;background:#f8fafc;border:1px dashed #94a3b8;border-radius:6px;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:13px;font-weight:600;color:#64748b;">No records</div>` : block.photos
           .map((photo, photoIndex) => {
             const capt = photo.caption
-              ? `<p style="font-size:10px;color:#475569;padding:4px 6px;margin:0;background:#fff;word-break:break-word;">${esc(
+              ? `<p style="font-size:10px;color:#475569;padding:5px 2px 0;margin:5px 0 0;border-top:1px solid #dbe2ea;background:transparent;word-break:break-word;">${esc(
                   photo.caption
                 )}</p>`
               : "";
-            return `<div style="position:relative;aspect-ratio:${photoIndex === 0 ? "5/4" : "4/3"};overflow:hidden;background:#fff;border:1px solid #d6d3ce;border-radius:6px;"><div style="width:100%;height:100%;overflow:hidden;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
+            return `<div class="report-image-frame" style="position:relative;aspect-ratio:${photoIndex === 0 ? "5/4" : "4/3"};display:flex;flex-direction:column;overflow:hidden;background:#f8fafc;border:1px solid #aeb8c4;border-radius:6px;padding:5px;"><div style="width:100%;flex:1;min-height:0;overflow:hidden;background:#fff;border:1px solid #dbe2ea;border-radius:3px;"><img src="${photo.dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>${capt}</div>`;
           })
           .join("");
         const emptyNote = "";
@@ -973,7 +976,7 @@ function buildReportHtml({ unitInfo, overviewPhotos, partData, remarks }) {
   );
   const inspectionSummaryHtml = `<div class="inspection-summary" style="display:flex;justify-content:center;gap:10px;max-width:560px;margin:0 auto 14px;break-inside:avoid;"><div style="flex:1;min-width:0;border:1px solid #fecaca;background:#fff7f7;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#dc2626;line-height:1;">${inspectionCounts.damage}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Damage marks</div></div><div style="flex:1;min-width:0;border:1px solid #bfdbfe;background:#f8fbff;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#2563eb;line-height:1;">${inspectionCounts.stain}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Stain marks</div></div><div style="flex:1;min-width:0;border:1px solid #d6d3ce;background:#fafaf9;border-radius:6px;padding:7px 10px;text-align:center;"><div class="summary-value" style="font-size:18pt;font-weight:700;color:#0f172a;line-height:1;">${inspectionCounts.photos}</div><div style="font-size:11pt;color:#475569;margin-top:3px;">Uploaded photos</div></div></div>`;
 
-  const overviewHtml = `<div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;width:560px;max-width:100%;margin:0 auto;break-inside:avoid;">${overviewSlots.map((slot) => `<div style="aspect-ratio:1/1;overflow:hidden;border:1px solid #cbd5e1;background:#f8fafc;position:relative;"><img src="${slot.image || SAMPLE_REMA_OVERVIEW}" style="width:100%;height:100%;object-fit:cover;display:block;${slot.example ? "opacity:.88;" : ""}" />${!slot.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);font-size:13px;font-weight:600;color:#64748b;text-align:center;padding:18px;">Upload ${slot.label.replace(" - uploaded", "")} photo</div>` : ""}<p style="position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 8px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:600;">${slot.label}</p></div>`).join("")}</div>`;
+  const overviewHtml = `<div class="word-two-up" style="display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:7px;width:560px;max-width:100%;margin:0 auto;break-inside:avoid;">${overviewSlots.map((slot) => `<div class="report-image-frame" style="aspect-ratio:1/1;overflow:hidden;border:1px solid #aeb8c4;border-radius:6px;background:#f8fafc;position:relative;padding:5px;"><div style="position:relative;width:100%;height:100%;overflow:hidden;border:1px solid #dbe2ea;border-radius:3px;background:#fff;"><img src="${slot.image || SAMPLE_REMA_OVERVIEW}" style="width:100%;height:100%;object-fit:cover;display:block;${slot.example ? "opacity:.88;" : ""}" />${!slot.image ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.78);font-size:13px;font-weight:600;color:#64748b;text-align:center;padding:18px;">Upload ${slot.label.replace(" - uploaded", "")} photo</div>` : ""}<p style="position:absolute;left:0;right:0;bottom:0;margin:0;padding:6px 8px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:600;">${slot.label}</p></div></div>`).join("")}</div>`;
 
   const remarksHtml =
     remarks.length === 0
@@ -2718,10 +2721,12 @@ function App() {
                   {overviewPhotos.map((photo) => (
                     <div key={photo.id} className="avoid-break">
                       <p className="text-[10px] font-semibold text-slate-600 mb-1">{photo.category === "h-number" ? "H number photo" : "REMA overview photo"}</p>
-                      <div className="rounded border border-stone-300 overflow-hidden">
-                        <PhotoImage photo={photo} />
+                      <div className="rounded-md border border-slate-400 bg-slate-50 p-1.5 overflow-hidden">
+                        <div className="rounded border border-slate-200 bg-white overflow-hidden">
+                          <PhotoImage photo={photo} />
+                        </div>
+                        {photo.caption && <p className="text-[10px] text-slate-600 mt-1 pt-1 border-t border-slate-200">{photo.caption}</p>}
                       </div>
-                      {photo.caption && <p className="text-[10px] text-slate-500 mt-0.5">{photo.caption}</p>}
                     </div>
                   ))}
                 </div>
@@ -2746,12 +2751,12 @@ function App() {
                   {pageParts.map((p) => {
                     const d = partData[p.id] || EMPTY_PART;
                     return (
-                      <div key={p.id} className="border border-stone-300 rounded p-1.5 avoid-break">
-                        <div className="relative aspect-square overflow-hidden" style={{ width: "100%" }}>
+                      <div key={p.id} className="border border-slate-400 bg-slate-50 rounded-md p-1.5 avoid-break">
+                        <div className="relative aspect-square overflow-hidden rounded border border-slate-200 bg-white" style={{ width: "100%" }}>
                           <img src={p.img} alt={p.name} className="w-full h-full object-contain rounded block" />
                           {d.marks.map((m) => <Marker key={m.id} mark={m} selected={false} />)}
                         </div>
-                        <p className="text-[11px] text-slate-700 mt-1 text-center"><span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{p.code}</span> {p.name}</p>
+                        <p className="text-[11px] text-slate-700 mt-1 pt-1 border-t border-slate-200 text-center"><span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{p.code}</span> {p.name}</p>
                       </div>
                     );
                   })}
@@ -2771,11 +2776,11 @@ function App() {
                   )}
                   <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-stone-200 border border-stone-300 rounded overflow-hidden">
                     {block.hasDiagram && (
-                      <div className="p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
-                        <div className="relative w-full max-w-[220px]">
+                      <div className="p-1.5 flex flex-col items-center justify-center bg-slate-50 border border-slate-400 rounded-md aspect-[4/3]">
+                        <div className="relative w-full max-w-[220px] p-1 bg-white border border-slate-200 rounded">
                           <img src={block.part.img} alt={block.part.name} className="w-full h-auto rounded block" />
                         </div>
-                        <p className="text-[11px] font-medium text-slate-800 text-center mt-2">
+                        <p className="w-full text-[11px] font-medium text-slate-800 text-center mt-1 pt-1 border-t border-slate-200">
                           <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{block.part.code}</span>
                           <br />
                           {block.part.name}
@@ -2783,11 +2788,11 @@ function App() {
                       </div>
                     )}
                     {block.photos.map((photo) => (
-                      <div key={photo.id} className="flex flex-col bg-white">
-                        <div className="aspect-[4/3] overflow-hidden">
+                      <div key={photo.id} className="flex flex-col bg-slate-50 border border-slate-400 rounded-md p-1.5">
+                        <div className="aspect-[4/3] overflow-hidden bg-white border border-slate-200 rounded">
                           <img src={photo.dataUrl} alt="" className="w-full h-full object-cover block" />
                         </div>
-                        {photo.caption && <p className="text-[10px] text-slate-600 px-1.5 py-1 bg-white break-words">{photo.caption}</p>}
+                        {photo.caption && <p className="text-[10px] text-slate-600 px-1 py-1 mt-1 border-t border-slate-200 break-words">{photo.caption}</p>}
                       </div>
                     ))}
                   </div>
@@ -2810,11 +2815,11 @@ function App() {
                   )}
                   <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-stone-200 border border-stone-300 rounded overflow-hidden">
                     {block.hasDiagram && (
-                      <div className="p-3 flex flex-col items-center justify-center bg-stone-50 aspect-[4/3]">
-                        <div className="relative w-full max-w-[220px]">
+                      <div className="p-1.5 flex flex-col items-center justify-center bg-slate-50 border border-slate-400 rounded-md aspect-[4/3]">
+                        <div className="relative w-full max-w-[220px] p-1 bg-white border border-slate-200 rounded">
                           <img src={block.part.img} alt={block.part.name} className="w-full h-auto rounded block" />
                         </div>
-                        <p className="text-[11px] font-medium text-slate-800 text-center mt-2">
+                        <p className="w-full text-[11px] font-medium text-slate-800 text-center mt-1 pt-1 border-t border-slate-200">
                           <span style={{ fontFamily: "'IBM Plex Mono', monospace" }}>{block.part.code}</span>
                           <br />
                           {block.part.name}
@@ -2822,11 +2827,11 @@ function App() {
                       </div>
                     )}
                     {block.photos.map((photo) => (
-                      <div key={photo.id} className="flex flex-col bg-white">
-                        <div className="aspect-[4/3] overflow-hidden">
+                      <div key={photo.id} className="flex flex-col bg-slate-50 border border-slate-400 rounded-md p-1.5">
+                        <div className="aspect-[4/3] overflow-hidden bg-white border border-slate-200 rounded">
                           <img src={photo.dataUrl} alt="" className="w-full h-full object-cover block" />
                         </div>
-                        {photo.caption && <p className="text-[10px] text-slate-600 px-1.5 py-1 bg-white break-words">{photo.caption}</p>}
+                        {photo.caption && <p className="text-[10px] text-slate-600 px-1 py-1 mt-1 border-t border-slate-200 break-words">{photo.caption}</p>}
                       </div>
                     ))}
                   </div>
